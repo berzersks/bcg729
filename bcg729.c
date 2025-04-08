@@ -84,7 +84,17 @@ ZEND_FUNCTION(g729PayloadToPcm)
     for (size_t i = 0; i < frames; i++) {
         const uint8_t *g729_payload = (const uint8_t *)(input + i * 10);
         int16_t pcmOut[80] = {0};
-        bcg729Decoder(decoder, g729_payload, 0, 0, 0, 0, pcmOut);
+        //bcg729Decoder(decoder, frame, 0, 0, 0, 0, pcmOut);
+        bcg729Decoder(decoder, g729_payload, 0, pcmOut);
+        /*****************************************************************************/
+        /* bcg729Decoder :                                                           */
+        /*    parameters:                                                            */
+        /*      -(i) decoderChannelContext : the channel context data                */
+        /*      -(i) bitStream : 15 parameters on 80 bits                            */
+        /*      -(i) frameErased: flag: true, frame has been erased                  */
+        /*      -(o) signal : a decoded frame 80 samples (16 bits PCM)               */
+        /*                                                                           */
+        /*****************************************************************************/
         smart_string_appendl(&pcm_result, (const char *)pcmOut, sizeof(pcmOut));
     }
 
@@ -119,7 +129,17 @@ ZEND_FUNCTION(g729FrameToUlaw)
     for (size_t i = 0; i < frames; i++) {
         const uint8_t *g729_payload = (const uint8_t *)(input + i * 10);
         int16_t pcmOut[80] = {0};
-        bcg729Decoder(decoder, g729_payload, 0, 0, 0, 0, pcmOut);
+        //bcg729Decoder(decoder, frame, 0, 0, 0, 0, pcmOut);
+        bcg729Decoder(decoder, g729_payload, 0, pcmOut);
+        /*****************************************************************************/
+        /* bcg729Decoder :                                                           */
+        /*    parameters:                                                            */
+        /*      -(i) decoderChannelContext : the channel context data                */
+        /*      -(i) bitStream : 15 parameters on 80 bits                            */
+        /*      -(i) frameErased: flag: true, frame has been erased                  */
+        /*      -(o) signal : a decoded frame 80 samples (16 bits PCM)               */
+        /*                                                                           */
+        /*****************************************************************************/
         for (int j = 0; j < 80; j++)
             smart_string_appendc(&ulaw_result, linear_to_ulaw(pcmOut[j]));
     }
@@ -186,7 +206,18 @@ ZEND_FUNCTION(g729PacketRTPToUlaw)
         int16_t pcmOut[80] = {0};
         uint8_t *ulawOut = (uint8_t *)(result + 12 + i * 80);
 
-        bcg729Decoder(decoder, frame, 0, 0, 0, 0, pcmOut);
+        //bcg729Decoder(decoder, frame, 0, 0, 0, 0, pcmOut);
+        bcg729Decoder(decoder, frame, 0, pcmOut);
+        /*****************************************************************************/
+        /* bcg729Decoder :                                                           */
+        /*    parameters:                                                            */
+        /*      -(i) decoderChannelContext : the channel context data                */
+        /*      -(i) bitStream : 15 parameters on 80 bits                            */
+        /*      -(i) frameErased: flag: true, frame has been erased                  */
+        /*      -(o) signal : a decoded frame 80 samples (16 bits PCM)               */
+        /*                                                                           */
+        /*****************************************************************************/
+
         for (int j = 0; j < 80; j++)
             ulawOut[j] = linear_to_ulaw(pcmOut[j]);
     }

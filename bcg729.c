@@ -10,7 +10,8 @@
 #include <zend_smart_string.h>
 #include "bcg729/decoder.h"
 
-// Argumentos
+// -------------------- ARGINFO --------------------
+
 ZEND_BEGIN_ARG_INFO(arginfo_bcg729_hello, 0)
 ZEND_END_ARG_INFO()
 
@@ -24,17 +25,11 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_g729PacketRTPToUlaw, 0, 0, 1)
     ZEND_ARG_TYPE_INFO(0, packet, IS_STRING, 0)
+    ZEND_ARG_TYPE_INFO(0, frames, IS_LONG, 1) // opcional
 ZEND_END_ARG_INFO()
 
+// -------------------- FUNÇÕES AUXILIARES --------------------
 
-
-// Função hello
-ZEND_FUNCTION(bcg729_hello)
-{
-    RETURN_STRING("Hello from bcg729 extension!");
-}
-
-// Conversão PCM linear (int16_t) → µ-law (uint8_t)
 static uint8_t linear_to_ulaw(int16_t pcm_val)
 {
     const uint16_t BIAS = 0x84;
@@ -52,32 +47,28 @@ static uint8_t linear_to_ulaw(int16_t pcm_val)
         exponent--;
 
     int mantissa = (pcm_val >> (exponent + 3)) & 0x0F;
-    uint8_t ulaw = ~(sign | (exponent << 4) | mantissa);
-
-    return ulaw;
+    return ~(sign | (exponent << 4) | mantissa);
 }
 
-/**
- * g729PayloadToPcm(string $input): string
- *
- * Decodifica um payload G.729 (múltiplos de 10 bytes) para dados PCM 16-bit.
- * Cada quadro G.729 (10 bytes) é decodificado para 80 amostras PCM (160 bytes).
- *
- * @param string $input  Payload G.729 (cada frame com 10 bytes)
- * @return string        Dados PCM (160 bytes por frame) ou FALSE em caso de erro.
- */
+// -------------------- FUNÇÕES PHP --------------------
+
+// Retorna uma string fixa de teste
+ZEND_FUNCTION(bcg729_hello)
+{
+    RETURN_STRING("Hello from bcg729 extension!");
+}
+
+// Converte payload G.729 para PCM 16-bit (160 bytes por frame)
 ZEND_FUNCTION(g729PayloadToPcm)
 {
     char *input;
     size_t input_len;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &input, &input_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &input, &input_len) == FAILURE)
         RETURN_FALSE;
-    }
 
-    /* Verifica se o tamanho da entrada é um múltiplo de 10 bytes */
     if (input_len % 10 != 0) {
-        php_error_docref(NULL, E_WARNING, "Expected G.729 payload to be a multiple of 10 bytes per frame.");
+        php_error_docref(NULL, E_WARNING, "Expected G.729 payload to be a multiple of 10 bytes.");
         RETURN_FALSE;
     }
 
@@ -93,22 +84,16 @@ ZEND_FUNCTION(g729PayloadToPcm)
     for (size_t i = 0; i < frames; i++) {
         const uint8_t *g729_payload = (const uint8_t *)(input + i * 10);
         int16_t pcmOut[80] = {0};
-
-        /* Decodifica o frame G.729 para obter 80 amostras PCM */
         bcg729Decoder(decoder, g729_payload, 0, 0, 0, 0, pcmOut);
-
-        /* Acrescenta 160 bytes (80 amostras de 2 bytes cada) ao resultado */
         smart_string_appendl(&pcm_result, (const char *)pcmOut, sizeof(pcmOut));
     }
 
     closeBcg729DecoderChannel(decoder);
     smart_string_0(&pcm_result);
-
     RETURN_STRINGL(pcm_result.c, pcm_result.len);
 }
 
-
-// g729FrameToUlaw(string $payload): string
+// Converte payload G.729 para µ-law
 ZEND_FUNCTION(g729FrameToUlaw)
 {
     char *input;
@@ -118,7 +103,7 @@ ZEND_FUNCTION(g729FrameToUlaw)
         RETURN_FALSE;
 
     if (input_len % 10 != 0) {
-        php_error_docref(NULL, E_WARNING, "Expected G.729 payload with multiple of 10 bytes.");
+        php_error_docref(NULL, E_WARNING, "Expected G.729 payload to be multiple of 10 bytes.");
         RETURN_FALSE;
     }
 
@@ -134,12 +119,9 @@ ZEND_FUNCTION(g729FrameToUlaw)
     for (size_t i = 0; i < frames; i++) {
         const uint8_t *g729_payload = (const uint8_t *)(input + i * 10);
         int16_t pcmOut[80] = {0};
-
         bcg729Decoder(decoder, g729_payload, 0, 0, 0, 0, pcmOut);
-
-        for (int j = 0; j < 80; j++) {
+        for (int j = 0; j < 80; j++)
             smart_string_appendc(&ulaw_result, linear_to_ulaw(pcmOut[j]));
-        }
     }
 
     closeBcg729DecoderChannel(decoder);
@@ -147,23 +129,30 @@ ZEND_FUNCTION(g729FrameToUlaw)
     RETURN_STRINGL(ulaw_result.c, ulaw_result.len);
 }
 
+// Converte um pacote RTP G.729 em RTP µ-law, respeitando o número de frames informado
 ZEND_FUNCTION(g729PacketRTPToUlaw)
 {
     char *packet;
     size_t packet_len;
+    zend_long frame_count = 2; // padrão (ptime = 20ms)
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &packet, &packet_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "s|l", &packet, &packet_len, &frame_count) == FAILURE)
+        RETURN_FALSE;
+
+    if (frame_count <= 0) {
+        php_error_docref(NULL, E_WARNING, "Número de frames deve ser maior que zero.");
         RETURN_FALSE;
     }
 
-    if (packet_len < 12 + 10) {
-        php_error_docref(NULL, E_WARNING, "Pacote RTP muito pequeno (esperado no mínimo 12 + 10 bytes).");
+    size_t expected_payload = frame_count * 10;
+    if (packet_len < 12 + expected_payload) {
+        php_error_docref(NULL, E_WARNING, "Pacote RTP menor do que o esperado (%ld frames = %zu bytes).", frame_count, expected_payload);
         RETURN_FALSE;
     }
 
     const uint8_t *rtp = (const uint8_t *)packet;
 
-    // Validação do header RTP
+    // Validação RTP
     uint8_t version = (rtp[0] >> 6) & 0x03;
     if (version != 2) {
         php_error_docref(NULL, E_WARNING, "Cabeçalho RTP inválido (versão != 2).");
@@ -172,47 +161,46 @@ ZEND_FUNCTION(g729PacketRTPToUlaw)
 
     uint8_t payload_type = rtp[1] & 0x7F;
     if (payload_type != 18) {
-        php_error_docref(NULL, E_WARNING, "Payload type não é G.729 (esperado 18). Recebido: %d", payload_type);
+        php_error_docref(NULL, E_WARNING, "Payload Type esperado: 18 (G.729). Recebido: %d", payload_type);
         RETURN_FALSE;
     }
 
-    size_t payload_len = packet_len - 12;
-    if (payload_len != 10) {
-        php_error_docref(NULL, E_WARNING, "Payload G.729 com tamanho inválido (esperado 10 bytes). Recebido: %zu", payload_len);
+    size_t result_len = 12 + frame_count * 80;
+    char *result = emalloc(result_len);
+    if (!result) {
+        php_error_docref(NULL, E_ERROR, "Falha ao alocar memória.");
         RETURN_FALSE;
     }
 
-    const uint8_t *g729_payload = (const uint8_t *)(packet + 12);
-    int16_t pcmOut[80] = {0};
-    uint8_t ulaw_payload[80];
+    memcpy(result, rtp, 12); // copia header RTP
 
     bcg729DecoderChannelContextStruct *decoder = initBcg729DecoderChannel();
     if (!decoder) {
+        efree(result);
         php_error_docref(NULL, E_WARNING, "Falha ao iniciar decoder.");
         RETURN_FALSE;
     }
 
-    bcg729Decoder(decoder, g729_payload, 0, 0, 0, 0, pcmOut);
-    closeBcg729DecoderChannel(decoder);
+    for (zend_long i = 0; i < frame_count; i++) {
+        const uint8_t *frame = (const uint8_t *)(packet + 12 + i * 10);
+        int16_t pcmOut[80] = {0};
+        uint8_t *ulawOut = (uint8_t *)(result + 12 + i * 80);
 
-    for (int i = 0; i < 80; i++) {
-        ulaw_payload[i] = linear_to_ulaw(pcmOut[i]);
+        bcg729Decoder(decoder, frame, 0, 0, 0, 0, pcmOut);
+        for (int j = 0; j < 80; j++)
+            ulawOut[j] = linear_to_ulaw(pcmOut[j]);
     }
 
-    // Monta novo pacote RTP com header original + novo payload
-    size_t result_len = 12 + 80;
-    char *result = emalloc(result_len);
-    memcpy(result, rtp, 12);
-    memcpy(result + 12, ulaw_payload, 80);
+    closeBcg729DecoderChannel(decoder);
 
-    // Corrige o Payload Type para 0 (ULAW), mantendo o Marker bit original
+    // Troca Payload Type para 0 (ULAW), preservando o bit Marker
     result[1] = (result[1] & 0x80) | 0x00;
 
     RETURN_STRINGL(result, result_len);
 }
 
+// -------------------- FUNÇÕES EXPORTADAS --------------------
 
-// Lista de funções expostas ao PHP
 const zend_function_entry bcg729_functions[] = {
     PHP_FE(bcg729_hello, arginfo_bcg729_hello)
     PHP_FE(g729FrameToUlaw, arginfo_g729FrameToUlaw)
@@ -221,7 +209,8 @@ const zend_function_entry bcg729_functions[] = {
     PHP_FE_END
 };
 
-// Registro do módulo
+// -------------------- REGISTRO DO MÓDULO --------------------
+
 zend_module_entry bcg729_module_entry = {
     STANDARD_MODULE_HEADER,
     PHP_BCG729_EXTNAME,

@@ -17,10 +17,12 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_g729FrameToUlaw, 0, 0, 1)
     ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
+     ZEND_ARG_TYPE_INFO(0, frames, IS_LONG, 1) // opcional
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_g729PayloadToPcm, 0, 0, 1)
     ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
+     ZEND_ARG_TYPE_INFO(0, frames, IS_LONG, 1) // opcional
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_g729PacketRTPToUlaw, 0, 0, 1)

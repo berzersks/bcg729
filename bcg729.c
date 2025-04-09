@@ -14,11 +14,11 @@
 
 // -------------------- ARGINFO --------------------
 
-ZEND_BEGIN_ARG_INFO(arginfo_bcg729Decode, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_bcg729Decode, 0, 1, IS_STRING, 0)
     ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_bcg729Encode, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_bcg729Encode, 0, 1, IS_STRING, 0)
     ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 

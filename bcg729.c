@@ -82,25 +82,37 @@ ZEND_FUNCTION(bcg729Encode) {
         RETURN_FALSE;
 
     if (input_len % 160 != 0) {
-        php_error_docref(NULL, E_WARNING, "Expected PCM payload to be a multiple of 160 bytes.");
+        php_error_docref(NULL, E_WARNING, "Expected PCM input to have a size multiple of 160 bytes (80 samples).");
         RETURN_FALSE;
     }
 
-    size_t frames = input_len / 160;
+    size_t frames = input_len / 160; // 160 bytes per frame (80 samples, 16-bit each)
+    uint8_t *outputFrames = (uint8_t *) emalloc(frames * 10); // 10 bytes per G.729 frame
+
     smart_string g729_result = {0};
 
-    bcg729EncoderChannelContextStruct *encoder = initBcg729EncoderChannel();
+    bcg729EncoderChannelContextStruct *encoder = initBcg729EncoderChannel(0);
     if (!encoder) {
         php_error_docref(NULL, E_WARNING, "Failed to initialize encoder.");
+        efree(outputFrames);
         RETURN_FALSE;
     }
 
     for (size_t i = 0; i < frames; i++) {
-        const int16_t *pcm_frame = (const int16_t *) (input + i * 160);
-        uint8_t g729_out[10] = {0};
+        bcg729Encoder(
+            encoder,
+            (const int16_t *) (input + i * 160), // 80 samples (160 bytes) per frame
+            0, // VAD (Voice Activity Detection): 0 = no voice detection
+            outputFrames + i * 10 // 10 bytes encoded frame
+        );
+
+        // Append the encoded frame (10 bytes) to the smart_string
+        smart_string_appendl(&g729_result, (const char *)(outputFrames + i * 10), 10);
     }
 
     closeBcg729EncoderChannel(encoder);
+    efree(outputFrames);
+
     smart_string_0(&g729_result);
     RETURN_STRINGL(g729_result.c, g729_result.len);
 }

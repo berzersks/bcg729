@@ -1,6 +1,6 @@
 # bcg729 - Extensão PHP para decodificação G.729
 
-Esta extensão fornece decodificação de frames G.729 em tempo real diretamente no PHP, com suporte à conversão para áudio µ-law (G.711). Ideal para sistemas de telefonia VoIP, gravações SIP, proxies RTP ou discadoras.
+Modulo PHP para conversão e decodificação de pacotes G729.
 
 ## 🔧 Instalação
 

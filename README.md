@@ -22,16 +22,11 @@ sudo make install
 ## 🧠 bcg729.stub.php
 
 ```php
-<?php
-function bcg729_hello(): string {}
+function bcg729decodestream(string $input): array {
+}
 
-/**
- * Converte um ou mais frames G.729 (10 bytes por frame) para µ-law (80 bytes por frame).
- *
- * @param string $input Payload G.729 puro, múltiplos de 10 bytes
- * @return string Áudio convertido em µ-law
- */
-function g729FrameToUlaw(string $input): string {}
+function bcg729encodestream(string $input): array {
+}
 ```
 
 ## 📜 Licença

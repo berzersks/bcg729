@@ -12,6 +12,7 @@
 #include <zend_smart_string.h>
 
 // -------------------- ARGINFO --------------------
+
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_bcg729DecodeStream, 0, 1, IS_ARRAY, 0)
     ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
 ZEND_END_ARG_INFO()
@@ -21,10 +22,8 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_bcg729EncodeStream, 0, 1, IS_ARR
     ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
-
-
-
 // -------------------- FUNÇÃO PRINCIPAL --------------------
+
 ZEND_FUNCTION(bcg729DecodeStream) {
     char *input;
     size_t input_len;
@@ -56,33 +55,28 @@ ZEND_FUNCTION(bcg729DecodeStream) {
             context,
             bitStream,
             10, // bitStreamLength
-            0, // frameErasureFlag
-            0, // SIDFrameFlag
-            0, // rfc3389PayloadFlag
+            0,  // frameErasureFlag
+            0,  // SIDFrameFlag
+            0,  // rfc3389PayloadFlag
             pcmOut
         );
 
-        // Convertendo para string binária
+        // Aloca espaço e converte int16_t para string binária
         char *output = (char *) emalloc(160); // 80 * sizeof(int16_t)
         for (int i = 0; i < 80; i++) {
             output[i * 2] = pcmOut[i] & 0xFF;
             output[i * 2 + 1] = (pcmOut[i] >> 8) & 0xFF;
         }
 
-        // Criando array com a saída
-        zval frame_result;
-        array_init(&frame_result);
-        add_assoc_stringl(&frame_result, "output", output, 160);
+        add_next_index_stringl(return_value, output, 160);
         efree(output);
-
-        add_next_index_zval(return_value, &frame_result);
 
         offset += 10;
     }
+
     closeBcg729DecoderChannel(context);
-    // return value
-    RETURN_ZVAL(return_value, 1, 0);
 }
+
 
 ZEND_FUNCTION(bcg729EncodeStream) {
     char *input;
@@ -97,19 +91,6 @@ ZEND_FUNCTION(bcg729EncodeStream) {
                          "Tamanho inválido: stream deve conter múltiplos de 160 bytes (1 frame por chunk).");
         RETURN_FALSE;
     }
-
-    /*****************************************************************************/
-    /* bcg729Encoder :                                                           */
-    /*    parameters:                                                            */
-    /*      -(i) encoderChannelContext : context for this encoder channel        */
-    /*      -(i) inputFrame : 80 samples (16 bits PCM)                           */
-    /*      -(o) bitStream : The 15 parameters for a frame on 80 bits            */
-    /*           on 80 bits (5 16bits words) for voice frame, 4 on 2 byte for    */
-    /*           noise frame, 0 for untransmitted frames                         */
-    /*      -(o) bitStreamLength : actual length of output, may be 0, 2 or 10    */
-    /*           if VAD/DTX is enabled                                           */
-    /*                                                                           */
-    /*****************************************************************************/
     bcg729EncoderChannelContextStruct *context = initBcg729EncoderChannel(false);
     if (!context) {
         php_error_docref(NULL, E_WARNING, "Falha ao inicializar encoder.");

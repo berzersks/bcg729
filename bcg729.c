@@ -61,15 +61,14 @@ ZEND_FUNCTION(bcg729DecodeStream) {
             pcmOut
         );
 
-        // Aloca espaço e converte int16_t para string binária
-        char *output = (char *) emalloc(160); // 80 * sizeof(int16_t)
+        zend_string *str = zend_string_alloc(160, 0);
         for (int i = 0; i < 80; i++) {
-            output[i * 2] = pcmOut[i] & 0xFF;
-            output[i * 2 + 1] = (pcmOut[i] >> 8) & 0xFF;
+            ZSTR_VAL(str)[i * 2]     = pcmOut[i] & 0xFF;
+            ZSTR_VAL(str)[i * 2 + 1] = (pcmOut[i] >> 8) & 0xFF;
         }
+        ZSTR_VAL(str)[160] = '\0'; // opcional segurança
 
-        add_next_index_stringl(return_value, output, 160);
-        efree(output);
+        add_next_index_str(return_value, str);
 
         offset += 10;
     }

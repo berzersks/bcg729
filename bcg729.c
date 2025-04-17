@@ -34,7 +34,7 @@ ZEND_FUNCTION(bcg729DecodeStream) {
 
     if (input_len % 10 != 0) {
         php_error_docref(NULL, E_WARNING,
-                         "Tamanho inválido: stream deve conter múltiplos de 10 bytes (1 frame por chunk).");
+            "Tamanho inválido: stream deve conter múltiplos de 10 bytes (1 frame por chunk).");
         RETURN_FALSE;
     }
 
@@ -45,16 +45,16 @@ ZEND_FUNCTION(bcg729DecodeStream) {
     }
 
     array_init(return_value);
-    size_t offset = 0;
 
+    size_t offset = 0;
     while (offset + 10 <= input_len) {
         const uint8_t *bitStream = (const uint8_t *) (input + offset);
-        int16_t pcmOut[80] = {0};
+        int16_t pcmOut[80] = {0}; // 80 amostras = 10ms de áudio PCM
 
         bcg729Decoder(
             context,
             bitStream,
-            10, // bitStreamLength
+            10, // tamanho do frame
             0,  // frameErasureFlag
             0,  // SIDFrameFlag
             0,  // rfc3389PayloadFlag
@@ -62,12 +62,7 @@ ZEND_FUNCTION(bcg729DecodeStream) {
         );
 
         zend_string *str = zend_string_alloc(160, 0);
-        for (int i = 0; i < 80; i++) {
-            ZSTR_VAL(str)[i * 2]     = pcmOut[i] & 0xFF;
-            ZSTR_VAL(str)[i * 2 + 1] = (pcmOut[i] >> 8) & 0xFF;
-        }
-        ZSTR_VAL(str)[160] = '\0'; // opcional segurança
-
+        memcpy(ZSTR_VAL(str), pcmOut, 160);
         add_next_index_str(return_value, str);
 
         offset += 10;
@@ -75,6 +70,7 @@ ZEND_FUNCTION(bcg729DecodeStream) {
 
     closeBcg729DecoderChannel(context);
 }
+
 
 
 ZEND_FUNCTION(bcg729EncodeStream) {

@@ -22,7 +22,7 @@ static zend_object_handlers bcg729_handlers;
 static zend_object *bcg729_create(zend_class_entry *ce) {
     bcg729Channel *obj = zend_object_alloc(sizeof(bcg729Channel), ce);
     obj->decoder = initBcg729DecoderChannel();
-    obj->encoder = initBcg729EncoderChannel(true);
+    obj->encoder = initBcg729EncoderChannel();
 
     zend_object_std_init(&obj->std, ce);
     object_properties_init(&obj->std, ce);

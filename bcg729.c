@@ -22,7 +22,7 @@ static zend_object_handlers bcg729_handlers;
 static zend_object *bcg729_create(zend_class_entry *ce) {
     bcg729Channel *obj = zend_object_alloc(sizeof(bcg729Channel), ce);
     obj->decoder = initBcg729DecoderChannel();
-    obj->encoder = initBcg729EncoderChannel();
+    obj->encoder = initBcg729EncoderChannel(0);
 
     zend_object_std_init(&obj->std, ce);
     object_properties_init(&obj->std, ce);
@@ -241,67 +241,13 @@ static int linear2ulaw(int pcm_val) {
     return uval ^ mask;
 }
 
-ZEND_FUNCTION(encodePcmToPcma)
-{
-    zend_string *input;
-    ZEND_PARSE_PARAMETERS_START(1, 1)
-        Z_PARAM_STR(input)
-    ZEND_PARSE_PARAMETERS_END();
 
-    if (ZSTR_LEN(input) == 0) {
-        RETURN_EMPTY_STRING();
-    }
 
-    smart_string result = {0};
-    const unsigned char *data = (const unsigned char *) ZSTR_VAL(input);
-    size_t samples = ZSTR_LEN(input) / 2;
 
-    smart_string_alloc(&result, samples, 0);
 
-    for (size_t i = 0; i < samples; i++) {
-        uint16_t sample = data[i * 2] | (data[i * 2 + 1] << 8);
-        if (sample > 32767) {
-            sample -= 65536;
-        }
-        unsigned char encoded = (unsigned char) linear2alaw((int) sample);
-        smart_string_appendc(&result, encoded);
-    }
 
-    smart_string_0(&result);
-    RETVAL_STRINGL(result.c, result.len);
-    smart_string_free(&result);
-}
 
-ZEND_FUNCTION(encodePcmToPcmu)
-{
-    zend_string *input;
-    ZEND_PARSE_PARAMETERS_START(1, 1)
-        Z_PARAM_STR(input)
-    ZEND_PARSE_PARAMETERS_END();
 
-    if (ZSTR_LEN(input) == 0) {
-        RETURN_EMPTY_STRING();
-    }
-
-    smart_string result = {0};
-    const unsigned char *data = (const unsigned char *) ZSTR_VAL(input);
-    size_t samples = ZSTR_LEN(input) / 2;
-
-    smart_string_alloc(&result, samples, 0);
-
-    for (size_t i = 0; i < samples; i++) {
-        uint16_t sample = data[i * 2] | (data[i * 2 + 1] << 8);
-        if (sample > 32767) {
-            sample -= 65536;
-        }
-        unsigned char encoded = (unsigned char) linear2ulaw((int) sample);
-        smart_string_appendc(&result, encoded);
-    }
-
-    smart_string_0(&result);
-    RETVAL_STRINGL(result.c, result.len);
-    smart_string_free(&result);
-}
 ZEND_METHOD(bcg729Channel, __construct) {}
 
 
@@ -426,8 +372,6 @@ ZEND_END_ARG_INFO()
 static const zend_function_entry bcg729_functions[] = {
     ZEND_FE(decodePcmaToPcm, arginfo_decode_law)
     ZEND_FE(decodePcmuToPcm, arginfo_decode_law)
-    ZEND_FE(encodePcmToPcmu, arginfo_decode_law)
-    ZEND_FE(encodePcmToPcma, arginfo_decode_law)
     ZEND_FE_END
 };
 

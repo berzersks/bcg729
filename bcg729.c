@@ -147,6 +147,43 @@ ZEND_FUNCTION(decodePcmaToPcm) {
     smart_string_free(&result);
 }
 
+
+/**
+ * Converte PCM little-endian para big-endian (network order)
+ *
+ * @param string $input Dados PCM 16-bit (little-endian)
+ * @return string Dados PCM 16-bit (big-endian)
+ */
+ZEND_FUNCTION(pcmLeToBe)
+{
+    zend_string *input;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if (ZSTR_LEN(input) < 2) {
+        RETURN_EMPTY_STRING();
+    }
+
+    size_t len = ZSTR_LEN(input);
+    smart_string result = {0};
+    smart_string_alloc(&result, len, 0);
+
+    const unsigned char *src = (const unsigned char *)ZSTR_VAL(input);
+    for (size_t i = 0; i < len; i += 2) {
+        unsigned char be[2];
+        be[0] = src[i + 1];
+        be[1] = src[i];
+        smart_string_appendl(&result, (char *)be, 2);
+    }
+
+    smart_string_0(&result);
+    RETVAL_STRINGL(result.c, result.len);
+    smart_string_free(&result);
+}
+
+
+
 /**
  * Converte dados de áudio no formato μ-law (PCMU) para PCM linear
  *
@@ -372,6 +409,7 @@ ZEND_END_ARG_INFO()
 static const zend_function_entry bcg729_functions[] = {
     ZEND_FE(decodePcmaToPcm, arginfo_decode_law)
     ZEND_FE(decodePcmuToPcm, arginfo_decode_law)
+    ZEND_FE(pcmLeToBe, arginfo_decode_law)
     ZEND_FE_END
 };
 

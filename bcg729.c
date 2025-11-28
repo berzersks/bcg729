@@ -741,4 +741,3 @@ zend_module_entry bcg729_module_entry = {
 #ifdef COMPILE_DL_BCG729
 ZEND_GET_MODULE(bcg729)
 #endif
-

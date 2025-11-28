@@ -16,122 +16,6 @@
 
 
 
-#define M_PI 3.14159265358979323846
-
-static inline double sinc(double x) {
-    if (fabs(x) < 1e-9) return 1.0;
-    return sin(M_PI * x) / (M_PI * x);
-}
-
-static inline double blackman_harris(double x, int half) {
-    double n = (x + half) / (2.0 * half);  // normalizado [0,1]
-    return 0.35875
-         - 0.48829 * cos(2.0 * M_PI * n)
-         + 0.14128 * cos(4.0 * M_PI * n)
-         - 0.01168 * cos(6.0 * M_PI * n);
-}
-
-ZEND_FUNCTION(resampler)
-{
-    zend_string *input;
-    zend_long src_rate, dst_rate;
-    zend_bool to_be = 0;
-
-    ZEND_PARSE_PARAMETERS_START(3, 4)
-        Z_PARAM_STR(input)
-        Z_PARAM_LONG(src_rate)
-        Z_PARAM_LONG(dst_rate)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_BOOL(to_be)
-    ZEND_PARSE_PARAMETERS_END();
-
-    if (ZSTR_LEN(input) < 2 || ZSTR_LEN(input) % 2 != 0 || src_rate <= 0 || dst_rate <= 0) {
-        RETURN_EMPTY_STRING();
-    }
-
-    const int16_t *pcm_in = (const int16_t *) ZSTR_VAL(input);
-    size_t samples_in = ZSTR_LEN(input) / 2;
-    double ratio = (double)dst_rate / (double)src_rate;
-    size_t samples_out = (size_t) ceil(samples_in * ratio);
-
-    const int taps = 32;
-    const int half = taps / 2;
-
-    smart_string result = {0};
-    smart_string_alloc(&result, samples_out * 2, 0);
-
-    double pos = 0.0;
-    double step = 1.0 / ratio;
-    double dc = 0.0;
-
-    for (size_t i = 0; i < samples_out; i++) {
-        int center = (int) floor(pos);
-        double acc = 0.0;
-        double wsum = 0.0;
-
-        for (int j = -half; j <= half; j++) {
-            int k = center + j;
-            if (k < 0) k = 0;
-            if ((size_t)k >= samples_in) k = samples_in - 1;
-
-            double x = pos - (double)k;
-            double window = blackman_harris(x, half);
-            double weight = sinc(x) * window;
-
-            acc += pcm_in[k] * weight;
-            wsum += weight;
-        }
-
-        double sample = (wsum > 0.0) ? acc / wsum : 0.0;
-
-        // filtro DC adaptativo
-        dc = 0.9998 * dc + 0.0002 * sample;
-        sample -= dc;
-
-        // clamp 16-bit
-        if (sample > 32767.0) sample = 32767.0;
-        else if (sample < -32768.0) sample = -32768.0;
-
-        int16_t out = (int16_t) lrint(sample);
-
-        if (to_be) {
-            unsigned char be[2] = {
-                (out >> 8) & 0xFF,
-                out & 0xFF
-            };
-            smart_string_appendl(&result, (char *)be, 2);
-        } else {
-            smart_string_appendl(&result, (char *)&out, 2);
-        }
-
-        pos += step;
-    }
-
-    smart_string_0(&result);
-    RETVAL_STRINGL(result.c, result.len);
-    smart_string_free(&result);
-}
-
-
-
-
-
-/* Arginfo */
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_resampler, 0, 3, IS_STRING, 0)
-    ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
-    ZEND_ARG_TYPE_INFO(0, src_rate, IS_LONG, 0)
-    ZEND_ARG_TYPE_INFO(0, dst_rate, IS_LONG, 0)
-    ZEND_ARG_TYPE_INFO(0, to_be, _IS_BOOL, 1)
-ZEND_END_ARG_INFO()
-
-
-
-
-
-
-
-
-
 
 
 
@@ -449,6 +333,255 @@ static int linear2ulaw(int pcm_val) {
     return uval ^ mask;
 }
 
+/**
+ * Converte dados de áudio PCM linear para formato A-law (PCMA)
+ *
+ * @param string $input Dados PCM linear (16-bit)
+ * @return string String contendo dados codificados em A-law
+ */
+ZEND_FUNCTION(encodePcmToPcma) {
+    zend_string *input;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if (ZSTR_LEN(input) < 2 || ZSTR_LEN(input) % 2 != 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    smart_string result = {0};
+    const int16_t *samples = (const int16_t *)ZSTR_VAL(input);
+    size_t num_samples = ZSTR_LEN(input) / 2;
+
+    smart_string_alloc(&result, num_samples, 0);
+
+    for (size_t i = 0; i < num_samples; i++) {
+        unsigned char alaw = (unsigned char)linear2alaw(samples[i]);
+        smart_string_appendc(&result, alaw);
+    }
+
+    smart_string_0(&result);
+    RETVAL_STRINGL(result.c, result.len);
+    smart_string_free(&result);
+}
+
+/**
+ * Converte dados de áudio PCM linear para formato μ-law (PCMU)
+ *
+ * @param string $input Dados PCM linear (16-bit)
+ * @return string String contendo dados codificados em μ-law
+ */
+ZEND_FUNCTION(encodePcmToPcmu) {
+    zend_string *input;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if (ZSTR_LEN(input) < 2 || ZSTR_LEN(input) % 2 != 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    smart_string result = {0};
+    const int16_t *samples = (const int16_t *)ZSTR_VAL(input);
+    size_t num_samples = ZSTR_LEN(input) / 2;
+
+    smart_string_alloc(&result, num_samples, 0);
+
+    for (size_t i = 0; i < num_samples; i++) {
+        unsigned char ulaw = (unsigned char)linear2ulaw(samples[i]);
+        smart_string_appendc(&result, ulaw);
+    }
+
+    smart_string_0(&result);
+    RETVAL_STRINGL(result.c, result.len);
+    smart_string_free(&result);
+}
+
+/**
+ * Converte L16 (PCM big-endian) para PCM little-endian
+ *
+ * @param string $input Dados L16 (16-bit big-endian)
+ * @return string Dados PCM (16-bit little-endian)
+ */
+ZEND_FUNCTION(decodeL16ToPcm) {
+    zend_string *input;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if (ZSTR_LEN(input) < 2 || ZSTR_LEN(input) % 2 != 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    size_t len = ZSTR_LEN(input);
+    smart_string result = {0};
+    smart_string_alloc(&result, len, 0);
+
+    const unsigned char *src = (const unsigned char *)ZSTR_VAL(input);
+    for (size_t i = 0; i < len; i += 2) {
+        unsigned char le[2];
+        le[0] = src[i + 1];  // byte baixo
+        le[1] = src[i];      // byte alto
+        smart_string_appendl(&result, (char *)le, 2);
+    }
+
+    smart_string_0(&result);
+    RETVAL_STRINGL(result.c, result.len);
+    smart_string_free(&result);
+}
+
+/**
+ * Converte PCM little-endian para L16 (PCM big-endian)
+ *
+ * @param string $input Dados PCM (16-bit little-endian)
+ * @return string Dados L16 (16-bit big-endian)
+ */
+ZEND_FUNCTION(encodePcmToL16) {
+    zend_string *input;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if (ZSTR_LEN(input) < 2 || ZSTR_LEN(input) % 2 != 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    size_t len = ZSTR_LEN(input);
+    smart_string result = {0};
+    smart_string_alloc(&result, len, 0);
+
+    const unsigned char *src = (const unsigned char *)ZSTR_VAL(input);
+    for (size_t i = 0; i < len; i += 2) {
+        unsigned char be[2];
+        be[0] = src[i + 1];  // byte alto
+        be[1] = src[i];      // byte baixo
+        smart_string_appendl(&result, (char *)be, 2);
+    }
+
+    smart_string_0(&result);
+    RETVAL_STRINGL(result.c, result.len);
+    smart_string_free(&result);
+}
+
+/**
+ * Mixa múltiplos canais de áudio PCM em um único canal
+ * Suporta mixagem de 2 ou mais canais com normalização automática
+ *
+ * @param array $channels Array de strings contendo dados PCM 16-bit de cada canal
+ * @param int $sample_rate Taxa de amostragem (ex: 8000, 16000, 44100, 48000)
+ * @return string|false Dados PCM mixados ou false em caso de erro
+ */
+ZEND_FUNCTION(mixAudioChannels) {
+    zval *channels_array;
+    zend_long sample_rate = 8000;
+
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_ARRAY(channels_array)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(sample_rate)
+    ZEND_PARSE_PARAMETERS_END();
+
+    HashTable *channels = Z_ARRVAL_P(channels_array);
+    uint32_t num_channels = zend_hash_num_elements(channels);
+
+    if (num_channels == 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    if (num_channels == 1) {
+        // Um único canal, apenas retorna ele
+        zval *first = zend_hash_index_find(channels, 0);
+        if (!first) first = zend_hash_get_current_data(channels);
+        if (first && Z_TYPE_P(first) == IS_STRING) {
+            RETURN_STR_COPY(Z_STR_P(first));
+        }
+        RETURN_EMPTY_STRING();
+    }
+
+    // Encontra o comprimento máximo entre todos os canais
+    size_t max_samples = 0;
+    zval *channel_data;
+
+    ZEND_HASH_FOREACH_VAL(channels, channel_data) {
+        if (Z_TYPE_P(channel_data) != IS_STRING) {
+            continue;
+        }
+        size_t len = Z_STRLEN_P(channel_data);
+        if (len % 2 != 0) {
+            php_error_docref(NULL, E_WARNING, "Canal de áudio com tamanho inválido (deve ser múltiplo de 2)");
+            RETURN_FALSE;
+        }
+        size_t samples = len / 2;
+        if (samples > max_samples) {
+            max_samples = samples;
+        }
+    } ZEND_HASH_FOREACH_END();
+
+    if (max_samples == 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    // Aloca buffer para mixagem com int32 para evitar overflow
+    int32_t *mix_buffer = (int32_t *)ecalloc(max_samples, sizeof(int32_t));
+    if (!mix_buffer) {
+        php_error_docref(NULL, E_ERROR, "Falha ao alocar memória para mixagem");
+        RETURN_FALSE;
+    }
+
+    // Soma todos os canais
+    uint32_t active_channels = 0;
+    ZEND_HASH_FOREACH_VAL(channels, channel_data) {
+        if (Z_TYPE_P(channel_data) != IS_STRING) {
+            continue;
+        }
+
+        const int16_t *samples = (const int16_t *)Z_STRVAL_P(channel_data);
+        size_t num_samples = Z_STRLEN_P(channel_data) / 2;
+
+        for (size_t i = 0; i < num_samples; i++) {
+            mix_buffer[i] += samples[i];
+        }
+        active_channels++;
+    } ZEND_HASH_FOREACH_END();
+
+    if (active_channels == 0) {
+        efree(mix_buffer);
+        RETURN_EMPTY_STRING();
+    }
+
+    // Converte de volta para int16_t com normalização e soft limiting
+    smart_string result = {0};
+    smart_string_alloc(&result, max_samples * 2, 0);
+
+    // Fator de mixagem: dividir pela raiz quadrada do número de canais
+    // Isso preserva melhor a energia do sinal e reduz clipping
+    double mix_factor = 1.0 / sqrt((double)active_channels);
+
+    for (size_t i = 0; i < max_samples; i++) {
+        int32_t mixed = (int32_t)(mix_buffer[i] * mix_factor);
+
+        // Soft clipping com compressão suave
+        int16_t output;
+        if (mixed > 32767) {
+            // Compressão suave para valores acima do limite
+            output = 32767;
+        } else if (mixed < -32768) {
+            // Compressão suave para valores abaixo do limite
+            output = -32768;
+        } else {
+            output = (int16_t)mixed;
+        }
+
+        smart_string_appendl(&result, (char *)&output, 2);
+    }
+
+    efree(mix_buffer);
+
+    smart_string_0(&result);
+    RETVAL_STRINGL(result.c, result.len);
+    smart_string_free(&result);
+}
+
 
 
 
@@ -577,11 +710,21 @@ ZEND_END_ARG_INFO()
 
 
 
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_mix_channels, 0, 1, IS_STRING, 0)
+    ZEND_ARG_TYPE_INFO(0, channels, IS_ARRAY, 0)
+    ZEND_ARG_TYPE_INFO(0, sample_rate, IS_LONG, 0)
+ZEND_END_ARG_INFO()
+
 static const zend_function_entry bcg729_functions[] = {
     ZEND_FE(decodePcmaToPcm, arginfo_decode_law)
     ZEND_FE(decodePcmuToPcm, arginfo_decode_law)
+    ZEND_FE(encodePcmToPcma, arginfo_encode_law)
+    ZEND_FE(encodePcmToPcmu, arginfo_encode_law)
+    ZEND_FE(decodeL16ToPcm, arginfo_decode_law)
+    ZEND_FE(encodePcmToL16, arginfo_encode_law)
+    ZEND_FE(mixAudioChannels, arginfo_mix_channels)
     ZEND_FE(pcmLeToBe, arginfo_decode_law)
-    ZEND_FE(resampler,       arginfo_resampler)
+
     ZEND_FE_END
 };
 
@@ -598,4 +741,3 @@ zend_module_entry bcg729_module_entry = {
 #ifdef COMPILE_DL_BCG729
 ZEND_GET_MODULE(bcg729)
 #endif
-

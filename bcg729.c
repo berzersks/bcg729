@@ -118,6 +118,102 @@ static const int16_t ulaw_to_linear[256] = {
     56, 48, 40, 32, 24, 16, 8, 0
 };
 
+
+
+
+ZEND_FUNCTION(resampler)
+{
+    zend_string *input;
+    zend_long src_rate, dst_rate;
+    zend_bool to_be = 0;
+
+    ZEND_PARSE_PARAMETERS_START(3, 4)
+        Z_PARAM_STR(input)
+        Z_PARAM_LONG(src_rate)
+        Z_PARAM_LONG(dst_rate)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_BOOL(to_be)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if (ZSTR_LEN(input) < 2 || src_rate <= 0 || dst_rate <= 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    const int16_t *pcm_in = (const int16_t *)ZSTR_VAL(input);
+    size_t samples_in = ZSTR_LEN(input) / 2;
+    double ratio = (double)dst_rate / (double)src_rate;
+    size_t samples_out = (size_t)ceil(samples_in * ratio);
+
+    smart_string result = {0};
+    smart_string_alloc(&result, samples_out * 2, 0);
+
+    // 🧩 Cúbico + antialias
+    double src_pos = 0.0;
+    double src_step = 1.0 / ratio;
+    double last_dc = 0.0;
+
+    unsigned char be[2];
+    for (size_t i = 0; i < samples_out; i++) {
+        double pos = src_pos;
+        size_t idx = (size_t)pos;
+        double frac = pos - idx;
+
+        // bordas seguras
+        int16_t y0 = (idx > 0) ? pcm_in[idx - 1] : pcm_in[idx];
+        int16_t y1 = pcm_in[idx];
+        int16_t y2 = (idx + 1 < samples_in) ? pcm_in[idx + 1] : pcm_in[idx];
+        int16_t y3 = (idx + 2 < samples_in) ? pcm_in[idx + 2] : y2;
+
+        // interpolação cúbica (Catmull–Rom)
+        double a0 = -0.5*y0 + 1.5*y1 - 1.5*y2 + 0.5*y3;
+        double a1 = y0 - 2.5*y1 + 2.0*y2 - 0.5*y3;
+        double a2 = -0.5*y0 + 0.5*y2;
+        double a3 = y1;
+
+        double sample = ((a0*frac + a1)*frac + a2)*frac + a3;
+
+        // 🧽 antialias DC (remove "metal raspando")
+        last_dc = 0.999 * last_dc + 0.001 * sample;
+        sample -= last_dc;
+
+        // clamp
+        if (sample > 32767.0) sample = 32767.0;
+        if (sample < -32768.0) sample = -32768.0;
+        int16_t out = (int16_t)lrint(sample);
+
+        if (to_be) {
+            be[0] = (out >> 8) & 0xFF;
+            be[1] = out & 0xFF;
+            smart_string_appendl(&result, (char *)be, 2);
+        } else {
+            smart_string_appendl(&result, (char *)&out, 2);
+        }
+
+        src_pos += src_step;
+    }
+
+    smart_string_0(&result);
+    RETVAL_STRINGL(result.c, result.len);
+    smart_string_free(&result);
+}
+
+
+/* ─────────────────────────────
+ *   Arginfo
+ * ───────────────────────────── */
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_resampler, 0, 3, IS_STRING, 0)
+    ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
+    ZEND_ARG_TYPE_INFO(0, src_rate, IS_LONG, 0)
+    ZEND_ARG_TYPE_INFO(0, dst_rate, IS_LONG, 0)
+    ZEND_ARG_TYPE_INFO(0, to_be, IS_BOOL, 0)
+ZEND_END_ARG_INFO()
+
+
+
+
+
+
+
 /* ------------------------------------------------------------------------- */
 /*    decodePcmaToPcm: A-law -> PCM 16-bit little-endian                      */
 /* ------------------------------------------------------------------------- */
@@ -652,6 +748,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_mix_channels, 0, 1, IS_STRING, 0
 ZEND_END_ARG_INFO()
 
 static const zend_function_entry bcg729_functions[] = {
+    ZEND_FE(resampler,        arginfo_resampler)
     ZEND_FE(decodePcmaToPcm,  arginfo_decode_law)
     ZEND_FE(decodePcmuToPcm,  arginfo_decode_law)
     ZEND_FE(encodePcmToPcma,  arginfo_encode_law)

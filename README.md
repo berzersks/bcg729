@@ -1,204 +1,211 @@
-# 🔊 Extensão PHP `bcg729` — Codec G.729 nativo para PHP
+# 🔊 Extensão PHP `bcg729` — Codec G.729 nativo em PHP
 
-Extensão em C para PHP que expõe primitivas para **codificar e decodificar áudio G.729** e utilitários de áudio
-relacionados, baseada na biblioteca upstream [bcg729](https://github.com/BelledonneCommunications/bcg729) (Belledonne
-Communications).
+Extensão PHP escrita em C que expõe funções e uma classe para **codificar/decodificar áudio G.729**, além de utilitários
+de conversão de áudio (A-law/μ-law/L16, mixagem), utilizando a biblioteca
+nativa [bcg729](https://github.com/BelledonneCommunications/bcg729) da Belledonne Communications.
 
-Ideal para aplicações VoIP, proxies RTP, media servers ou sistemas de gravação/transcodificação SIP que precisam de alta
-performance sem daemons externos.
+Ideal para aplicações VoIP (SIP/RTP), proxies de mídia, media servers e sistemas de gravação/transcodificação que
+precisam de baixo overhead e alta performance sem serviços externos.
 
 —
 
-## 🧰 Stack e pontos de entrada
+## 📑 Sumário
 
-- Linguagem/stack: C (extensão para PHP 8), Zend API
-- Geradores de build: Autotools via `phpize`/`configure` (primário); há um `CMakeLists.txt` auxiliar (uso para IDEs) —
-  TODO: documentar suporte oficial a CMake se aplicável
-- Biblioteca nativa requerida: `bcg729` (headers e lib `-lbcg729`)
-- Módulo PHP: `bcg729`
-- Ponto de entrada (PHP):
-    - Classe `bcg729Channel` com métodos `__construct`, `decode`, `encode`, `info`, `close`
-    - Funções globais:
-        - `decodePcmaToPcm(string $input): string`
-        - `decodePcmuToPcm(string $input): string`
-        - `encodePcmToPcma(string $input): string`
-        - `encodePcmToPcmu(string $input): string`
-        - `decodeL16ToPcm(string $input): string`
-        - `encodePcmToL16(string $input): string`
-        - `mixAudioChannels(array $channels, int $sample_rate): string`
-        - `pcmLeToBe(string $input): string`
+- [Stack / Detecção do projeto](#-stack--detecção-do-projeto)
+- [Visão geral do que é exposto](#-visão-geral-do-que-é-exposto)
+- [Requisitos](#-requisitos)
+- [Instalação (via phpize)](#-instalação-via-phpize)
+- [Como executar os testes / scripts incluídos](#-como-executar-os-testes--scripts-incluídos)
+- [Variáveis de ambiente úteis](#-variáveis-de-ambiente-úteis)
+- [Exemplos rápidos de uso](#-exemplos-rápidos-de-uso)
+- [Estrutura do projeto (resumo)](#-estrutura-do-projeto-resumo)
+- [Notas de build e scripts](#-notas-de-build-e-scripts)
+- [Licença](#-licença)
+- [Contribuições](#-contribuições)
+  - [Guia de Contribuição](#guia-de-contribuição)
+  - [Changelog](#changelog)
+
+## 📦 Stack / Detecção do projeto
+
+- Linguagem principal: C (extensão PHP via Zend API)
+- Runtime alvo: PHP 8.x
+- Sistema de build principal: `phpize` + `autoconf`/`make` (via `config.m4`)
+- Dependência nativa: biblioteca `bcg729` (linkada como `-lbcg729`)
+- Alternativo (experimental): arquivo `CMakeLists.txt` presente, porém não recomendado no momento (ver Nota/TODO abaixo)
+
+—
+
+## 🧭 Visão geral do que é exposto
+
+### Classe `bcg729Channel`
+
+- `__construct()` — cria um canal com encoder/decoder G.729
+- `encode(string $pcm16le): string` — codifica PCM 16‑bit LE em G.729
+- `decode(string $g729): string` — decodifica G.729 para PCM 16‑bit LE
+- `info(): array|mixed` — informações do canal (implem.)
+- `close(): void` — libera recursos nativos
+
+### Funções auxiliares (globais)
+
+- `encodePcmToPcma(string $pcm16le): string` — PCM 16‑bit LE → A‑law
+- `encodePcmToPcmu(string $pcm16le): string` — PCM 16‑bit LE → μ‑law
+- `decodePcmaToPcm(string $pcma): string` — A‑law → PCM 16‑bit LE
+- `decodePcmuToPcm(string $pcmu): string` — μ‑law → PCM 16‑bit LE
+- `encodePcmToL16(string $pcm16le_be?): string` e `decodeL16ToPcm(string $l16_be): string` — conversões L16/endianness
+- `mixAudioChannels(array $frames, int $sampleRate): string` — mixagem simples de canais PCM
+- `pcmLeToBe(string $pcm16le): string` — utilitário de endianness
+
+Observação: os nomes/assinaturas acima foram extraídos do código fonte (`bcg729.c`). Para detalhes exatos consulte o
+arquivo.
 
 —
 
 ## ✅ Requisitos
 
-- PHP 8.x com ferramentas de desenvolvimento (`phpize`, headers)
-- Compilador e ferramentas: `gcc`, `make`, `autoconf`
-- Biblioteca nativa [bcg729] instalada (headers e biblioteca compartilhada/estática)
-    - TODO: listar nomes de pacotes por distribuição (ex.: Debian/Ubuntu `libbcg729-dev`?)
+- PHP 8.0+ com headers de desenvolvimento (ex.: `php-dev`/`php-devel`)
+- Ferramentas de build: `phpize`, `autoconf`, `make`, `gcc`
+- Biblioteca nativa `bcg729` disponível no sistema para linkagem (`-lbcg729`)
+  - TODO: documentar passos oficiais de instalação para cada distro (Debian/Ubuntu/Fedora/macOS). Em muitas distros o
+    pacote chama algo como `libbcg729-dev`/`bcg729`.
 
 —
 
-## 🚀 Instalação (Autotools/phpize)
+## 🚀 Instalação (via phpize)
 
 ```bash
+# 1) Preparar o ambiente de build
 phpize
-./configure
+
+# 2) Configurar (passe --with-php-config se necessário)
+./configure --enable-bcg729
+
+# 3) Compilar e instalar a extensão
 make
 sudo make install
+
+# 4) Habilitar a extensão (php.ini ou conf.d)
+echo "extension=bcg729" | sudo tee /etc/php/*/mods-available/bcg729.ini >/dev/null
+sudo phpenmod bcg729 2>/dev/null || true
 ```
 
-Ative no seu `php.ini`:
-
-```ini
-extension=bcg729
-```
-
-Verifique o carregamento:
+Verifique a instalação:
 
 ```bash
 php -m | grep bcg729
-```
-
-Observações:
-
-- O arquivo `config.m4` liga contra `-lbcg729`. Garanta que o linker encontre a biblioteca (ex.: ajuste
-  `LD_LIBRARY_PATH` ou instale no prefixo padrão do sistema).
-- Linkagem estática vs dinâmica dependerá do ambiente e de como `bcg729` foi instalado. TODO: documentar cenário de
-  linkagem estática, se suportado/necessário.
-
-—
-
-## 🧪 Testes
-
-O repositório inclui `run-tests.php` (harness padrão do PHP).
-
-Formas comuns de executar:
-
-- Via `make test` após compilar:
-
-```bash
-make test
-```
-
-- Ou manualmente indicando o binário do PHP:
-
-```bash
-php -d extension=bcg729 run-tests.php -p "$(which php)"
+php -r 'var_dump(class_exists("bcg729Channel"));'
 ```
 
 —
 
-## 🎧 Uso rápido (API)
+## 🧪 Como executar os testes / scripts incluídos
 
-G.729 opera com quadros de 10 ms: 10 bytes por quadro no bitstream e 80 amostras PCM16 (mono, 8 kHz), ou seja, 160 bytes
-por quadro em PCM16LE.
+Scripts de teste e diagnóstico (ver pasta raiz):
 
-### Classe `bcg729Channel`
+- `test_simple.php` — teste básico e rápido de encode/decode e utilitários
+  - Execução: `php test_simple.php`
+
+- `test_memory_leak.php` — teste mais completo com milhares de iterações e métricas de memória
+  - Execução: `php test_memory_leak.php`
+
+- `test_valgrind.sh` — integração com Valgrind para checar vazamentos (requer Valgrind)
+  - Execução: `./test_valgrind.sh`
+  - Saída: logs em `valgrind_logs/` (detalhes em `README_TESTS.md`)
+
+- `demo_real_audio.php` — demonstração com áudio real (exemplos de uso de conversões)
+
+Mais detalhes em `README_TESTS.md`.
+
+—
+
+## 🌿 Variáveis de ambiente úteis
+
+- `USE_ZEND_ALLOC=0` — recomendado ao usar Valgrind para relatórios mais precisos
+- `PHP_INI_SCAN_DIR` — para apontar um diretório com `bcg729.ini` customizado
+- `PHPRC` — para carregar um `php.ini` específico durante testes
+
+—
+
+## 🧩 Exemplos rápidos de uso
 
 ```php
+<?php
+
 $ch = new bcg729Channel();
 
-// Decodifica bitstream G.729 -> PCM16LE (@8kHz mono)
-// Entrada deve ter tamanho múltiplo de 10 bytes
-$pcm = $ch->decode($g729Bytes);
+// PCM 16‑bit (LE) de 10 ms @ 8 kHz (80 samples):
+$pcm = str_repeat("\x00\x00", 80);
 
-// Codifica PCM16LE (@8kHz mono) -> G.729
-// Entrada deve ter tamanho múltiplo de 160 bytes (80 samples * 2 bytes)
-$g729 = $ch->encode($pcmBytes);
+$g729 = $ch->encode($pcm);
+$back = $ch->decode($g729);
 
-$info = $ch->info();   // [decoder_initialized => bool, encoder_initialized => bool]
-$ch->close();          // Libera recursos (retorna true)
+// Utilitários A‑law/μ‑law
+$pcma = encodePcmToPcma($pcm);
+$pcmu = encodePcmToPcmu($pcm);
+
+$pcm_from_a = decodePcmaToPcm($pcma);
+$pcm_from_u = decodePcmuToPcm($pcmu);
+
+$ch->close();
 ```
 
-### Funções utilitárias
-
-```php
-// Lei A/µ <-> PCM16
-$pcm   = decodePcmaToPcm($alawBytes);
-$pcm   = decodePcmuToPcm($ulawBytes);
-$alaw  = encodePcmToPcma($pcmBytes);
-$ulaw  = encodePcmToPcmu($pcmBytes);
-
-// PCM16 big-endian <-> little-endian
-$pcmBe = encodePcmToL16($pcmLe);
-$pcmLe = decodeL16ToPcm($pcmBe);
-
-// Mix de múltiplos canais PCM16LE em uma única trilha
-$mix = mixAudioChannels([$ch1Bytes, $ch2Bytes, /* ... */], 8000);
-
-// Conversão LE -> BE direta
-$be = pcmLeToBe($le);
-```
-
-Validações de tamanho na implementação:
-
-- `bcg729Channel::decode` retorna `false` se o tamanho de entrada não for múltiplo de 10 bytes.
-- `bcg729Channel::encode` retorna `false` se o tamanho de entrada não for múltiplo de 160 bytes.
-
 —
 
-## 📦 Scripts e comandos úteis
-
-- `phpize` / `./configure` / `make` / `make install`: ciclo padrão de build/instalação
-- `make test` ou `run-tests.php`: execução da suíte de testes padrão de extensões PHP
-
-—
-
-## 🔐 Variáveis de ambiente / Configuração
-
-Nenhuma configuração INI própria é exposta no momento. O módulo é carregado como `extension=bcg729`.
-
-Possíveis variáveis do ambiente de build (dependem do sistema):
-
-- `PKG_CONFIG_PATH`, `CFLAGS`, `LDFLAGS` — caso precise apontar para onde a `bcg729` está instalada. TODO: adicionar
-  exemplos por plataforma.
-
-—
-
-## 🗂️ Estrutura do projeto
+## 🗂️ Estrutura do projeto (resumo)
 
 ```
 .
-├── bcg729.c            # Implementação da extensão (classe, funções e hooks do módulo)
-├── php_bcg729.h        # Header da extensão (nome, versão, entry)
-├── config.m4           # Configuração para phpize/autoconf, ligação com -lbcg729
-├── configure.ac        # Autotools (gerado/necessário ao configure)
-├── run-tests.php       # Harness de testes das extensões PHP
-├── CMakeLists.txt      # Arquivo CMake (auxiliar/IDE) — TODO: confirmar suporte oficial
-├── LICENSE             # Licença do projeto
-├── README.md           # Este documento
-└── SECURITY.md         # Política de segurança
+├─ bcg729.c              # Implementação da extensão PHP (Zend API)
+├─ php_bcg729.h          # Cabeçalho da extensão
+├─ config.m4             # Configuração para phpize/autoconf
+├─ configure.ac, configure, Makefile*  # Artefatos de build
+├─ test_simple.php       # Teste rápido
+├─ test_memory_leak.php  # Teste extensivo / métricas de memória
+├─ test_valgrind.sh      # Script de Valgrind
+├─ demo_real_audio.php   # Demo com áudio real
+├─ README_TESTS.md       # Documentação dos testes
+├─ CMakeLists.txt        # Build alternativo (experimental) — ver Nota
+└─ LICENSE               # Licença (GPLv3)
 ```
 
 —
 
-## 🌜 Casos de uso
+## 🛠️ Notas de build e scripts
 
-- Proxy RTP com transcodificação G.729 ↔ PCMU (G.711)
-- Gravação de chamadas VoIP com compressão
-- Transcodificação para economia de banda
+- `config.m4` declara `PHP_NEW_EXTENSION(bcg729, bcg729.c, $ext_shared)` e adiciona link com `bcg729` (
+  `PHP_ADD_LIBRARY(bcg729, 1, bcg729)`). Certifique-se de que a lib nativa esteja instalada e visível ao linker (por
+  exemplo, via `/usr/lib`, `pkg-config`, `LD_LIBRARY_PATH`, etc.).
+- Makefiles presentes na raiz podem ser artefatos de builds anteriores. O caminho suportado é via `phpize` (se houver
+  divergência, prefira regenerar com `phpize`).
+- `CMakeLists.txt`: arquivo presente, porém inclui arquivos não‑fonte como dependências e requer ajustes. No momento o
+  fluxo oficial é `phpize`.
+  - TODO: Revisar/arrumar o build via CMake (versão mínima, fontes corretas, includes e linkagem do `bcg729`).
+
+Observação: o CMake agora está desativado por padrão e marcado como experimental. Para forçar (não recomendado):
+
+```bash
+cmake -S . -B build -DBUILD_EXPERIMENTAL_CMAKE=ON -DPHP_INCLUDE_DIR=/usr/include/php/20230831
+cmake --build build
+```
 
 —
 
-## 📄 Licença
+## 📜 Licença
 
-Este projeto está licenciado sob **GNU GPL v2** (ver arquivo `LICENSE`).
-
-ATENÇÃO: a biblioteca upstream [bcg729](https://github.com/BelledonneCommunications/bcg729) tem sua própria licença;
-verifique compatibilidade para o seu uso.
+O projeto é licenciado sob **GPLv3** (ver arquivo `LICENSE`). A biblioteca
+subjacente [bcg729](https://github.com/BelledonneCommunications/bcg729) também é GPLv3.
 
 —
 
 ## 🤝 Contribuições
 
-Pull requests e melhorias são bem-vindos! Antes de submeter, rode os testes e siga o estilo do código existente.
+Contribuições são bem‑vindas! Sinta‑se à vontade para abrir issues, enviar PRs ou propor melhorias na
+documentação/testes.
 
-—
+### Guia de Contribuição
 
-## 📝 TODOs
+Consulte `CONTRIBUTING.md` para setup do ambiente, estilo, testes e fluxo de PR.
 
-- Documentar pacotes por distribuição para `bcg729` (ex.: Debian/Ubuntu/Fedora/Alpine)
-- Confirmar e documentar suporte oficial ao build via CMake (atualmente o caminho suportado é `phpize`)
-- Exemplos completos de fluxo RTP (I/O de quadros) e integração com streams
+### Changelog
+
+Mudanças versionadas seguem o padrão Keep a Changelog. Veja `CHANGELOG.md`.
 

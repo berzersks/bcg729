@@ -1,0 +1,45 @@
+# General
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# PHP extension build artifacts
+modules/
+*.so
+*.lo
+*.la
+.libs/
+acinclude.m4
+aclocal.m4
+autom4te.cache/
+build/
+config.h
+config.h.in~
+config.log
+config.nice
+config.status
+configure
+configure~
+libtool
+Makefile
+Makefile.fragments
+Makefile.global
+Makefile.objects
+
+# CMake/CLion
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+build.ninja
+rules.ninja
+
+# Valgrind logs
+valgrind_logs/
+
+# Misc
+*.out
+*.log
+*.tmp

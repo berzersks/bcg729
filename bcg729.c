@@ -5,11 +5,8 @@
 #include <string.h>
 #include <math.h>
 
-
 #include "bcg729/decoder.h"
 #include "bcg729/encoder.h"
-#include <zend_smart_string.h>
-
 
 #define Z_BCG729_CHANNEL_P(zv)  ((bcg729Channel *)((char *)(Z_OBJ_P(zv)) - XtOffsetOf(bcg729Channel, std)))
 
@@ -47,6 +44,9 @@ static void bcg729_free(zend_object *object) {
     zend_object_std_dtor(&obj->std);
 }
 
+/* ------------------------------------------------------------------------- */
+/*                TABELAS ALAW / ULAW                                        */
+/* ------------------------------------------------------------------------- */
 
 static const int16_t alaw_to_linear[256] = {
     -5504, -5248, -6016, -5760, -4480, -4224, -4992, -4736,
@@ -118,72 +118,6 @@ static const int16_t ulaw_to_linear[256] = {
     56, 48, 40, 32, 24, 16, 8, 0
 };
 
-/**
- * Converte dados de áudio no formato A-law (PCMA) para PCM linear
- *
- * @param string $input String contendo dados codificados em A-law
- * @return string Dados convertidos para PCM linear (16-bit)
- */
-ZEND_FUNCTION(decodePcmaToPcm) {
-    zend_string *input;
-    ZEND_PARSE_PARAMETERS_START(1, 1)
-        Z_PARAM_STR(input)
-    ZEND_PARSE_PARAMETERS_END();
-
-    if (ZSTR_LEN(input) == 0) {
-        RETURN_EMPTY_STRING();
-    }
-
-    smart_string result = {0};
-    const unsigned char *data = (const unsigned char *)ZSTR_VAL(input);
-    size_t samples = ZSTR_LEN(input);
-
-    smart_string_alloc(&result, samples * 2, 0);
-
-    for (size_t i = 0; i < samples; i++) {
-        int16_t sample = alaw_to_linear[data[i]];
-        smart_string_appendl(&result, (char *)&sample, 2);
-    }
-
-    smart_string_0(&result);
-    RETVAL_STRINGL(result.c, result.len);
-    smart_string_free(&result);
-}
-
-
-/**
- * Converte PCM little-endian para big-endian (network order)
- *
- * @param string $input Dados PCM 16-bit (little-endian)
- * @return string Dados PCM 16-bit (big-endian)
- */
-ZEND_FUNCTION(pcmLeToBe)
-{
-    zend_string *input;
-    ZEND_PARSE_PARAMETERS_START(1, 1)
-        Z_PARAM_STR(input)
-    ZEND_PARSE_PARAMETERS_END();
-
-    if (ZSTR_LEN(input) < 2) {
-        RETURN_EMPTY_STRING();
-    }
-
-    size_t len = ZSTR_LEN(input);
-    smart_string result = {0};
-    smart_string_alloc(&result, len, 0);
-
-    const unsigned char *src = (const unsigned char *)ZSTR_VAL(input);
-    for (size_t i = 0; i < len; i += 2) {
-        unsigned char be[2];
-        be[0] = src[i + 1];
-        be[1] = src[i];
-        smart_string_appendl(&result, (char *)be, 2);
-    }
-
-    smart_string_0(&result);
-    RETVAL_STRINGL(result.c, result.len);
-    smart_string_free(&result);
-}
 
 
 
@@ -271,49 +205,104 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_resampler, 0, 3, IS_STRING, 0)
     ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
     ZEND_ARG_TYPE_INFO(0, src_rate, IS_LONG, 0)
     ZEND_ARG_TYPE_INFO(0, dst_rate, IS_LONG, 0)
-    ZEND_ARG_TYPE_INFO(0, to_be, _IS_BOOL, 1)
+    ZEND_ARG_TYPE_INFO(0, to_be, _IS_BOOL, 0)
 ZEND_END_ARG_INFO()
 
 
 
 
-/**
- * Converte dados de áudio no formato μ-law (PCMU) para PCM linear
- *
- * @param string $input String contendo dados codificados em μ-law
- * @return string Dados convertidos para PCM linear (16-bit)
- */
-ZEND_FUNCTION(decodePcmuToPcm) {
+
+
+
+/* ------------------------------------------------------------------------- */
+/*    decodePcmaToPcm: A-law -> PCM 16-bit little-endian                      */
+/* ------------------------------------------------------------------------- */
+
+ZEND_FUNCTION(decodePcmaToPcm) {
     zend_string *input;
+
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_STR(input)
     ZEND_PARSE_PARAMETERS_END();
 
-    if (ZSTR_LEN(input) == 0) {
+    size_t samples = ZSTR_LEN(input);
+    if (samples == 0) {
         RETURN_EMPTY_STRING();
     }
 
-    smart_string result = {0};
-    const unsigned char *data = (const unsigned char *)ZSTR_VAL(input);
-    size_t samples = ZSTR_LEN(input);
-
-    smart_string_alloc(&result, samples * 2, 0);
+    zend_string *out = zend_string_alloc(samples * 2, 0);
+    int16_t *dst = (int16_t *) ZSTR_VAL(out);
+    const unsigned char *src = (const unsigned char *) ZSTR_VAL(input);
 
     for (size_t i = 0; i < samples; i++) {
-        int16_t sample = ulaw_to_linear[data[i]];
-        smart_string_appendl(&result, (char *)&sample, 2);
+        dst[i] = alaw_to_linear[src[i]];
     }
 
-    smart_string_0(&result);
-    RETVAL_STRINGL(result.c, result.len);
-    smart_string_free(&result);
+    ZSTR_VAL(out)[samples * 2] = '\0';
+    RETURN_STR(out);
 }
 
+/* ------------------------------------------------------------------------- */
+/*    pcmLeToBe: PCM little-endian -> big-endian (network order)             */
+/* ------------------------------------------------------------------------- */
 
+ZEND_FUNCTION(pcmLeToBe)
+{
+    zend_string *input;
 
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
 
+    size_t len = ZSTR_LEN(input);
+    if (len < 2 || (len & 1) != 0) {
+        RETURN_EMPTY_STRING();
+    }
 
+    zend_string *out = zend_string_alloc(len, 0);
+    unsigned char *dst = (unsigned char *) ZSTR_VAL(out);
+    const unsigned char *src = (const unsigned char *) ZSTR_VAL(input);
 
+    for (size_t i = 0; i < len; i += 2) {
+        dst[i]     = src[i + 1];
+        dst[i + 1] = src[i];
+    }
+
+    dst[len] = '\0';
+    RETURN_STR(out);
+}
+
+/* ------------------------------------------------------------------------- */
+/*    decodePcmuToPcm: μ-law -> PCM 16-bit little-endian                      */
+/* ------------------------------------------------------------------------- */
+
+ZEND_FUNCTION(decodePcmuToPcm) {
+    zend_string *input;
+
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
+
+    size_t samples = ZSTR_LEN(input);
+    if (samples == 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    zend_string *out = zend_string_alloc(samples * 2, 0);
+    int16_t *dst = (int16_t *) ZSTR_VAL(out);
+    const unsigned char *src = (const unsigned char *) ZSTR_VAL(input);
+
+    for (size_t i = 0; i < samples; i++) {
+        dst[i] = ulaw_to_linear[src[i]];
+    }
+
+    ZSTR_VAL(out)[samples * 2] = '\0';
+    RETURN_STR(out);
+}
+
+/* ------------------------------------------------------------------------- */
+/*      Funções auxiliares linear2alaw / linear2ulaw                          */
+/* ------------------------------------------------------------------------- */
 
 static int searchSegment(int val, const int16_t *seg_end, int seg_count) {
     for (int i = 0; i < seg_count; i++) {
@@ -371,74 +360,327 @@ static int linear2ulaw(int pcm_val) {
     return uval ^ mask;
 }
 
+/* ------------------------------------------------------------------------- */
+/*    encodePcmToPcma: PCM 16-bit -> A-law                                    */
+/* ------------------------------------------------------------------------- */
 
-
-
-
-
-
-
-ZEND_METHOD(bcg729Channel, __construct) {}
-
-
-
-ZEND_METHOD(bcg729Channel, decode) {
+ZEND_FUNCTION(encodePcmToPcma) {
     zend_string *input;
+
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_STR(input)
     ZEND_PARSE_PARAMETERS_END();
 
-    if (ZSTR_LEN(input) % 10 != 0) {
+    size_t len = ZSTR_LEN(input);
+    if (len < 2 || (len & 1) != 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    size_t num_samples = len / 2;
+    zend_string *out = zend_string_alloc(num_samples, 0);
+    unsigned char *dst = (unsigned char *) ZSTR_VAL(out);
+    const int16_t *src = (const int16_t *) ZSTR_VAL(input);
+
+    for (size_t i = 0; i < num_samples; i++) {
+        dst[i] = (unsigned char) linear2alaw(src[i]);
+    }
+
+    dst[num_samples] = '\0';
+    RETURN_STR(out);
+}
+
+/* ------------------------------------------------------------------------- */
+/*    encodePcmToPcmu: PCM 16-bit -> μ-law                                    */
+/* ------------------------------------------------------------------------- */
+
+ZEND_FUNCTION(encodePcmToPcmu) {
+    zend_string *input;
+
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
+
+    size_t len = ZSTR_LEN(input);
+    if (len < 2 || (len & 1) != 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    size_t num_samples = len / 2;
+    zend_string *out = zend_string_alloc(num_samples, 0);
+    unsigned char *dst = (unsigned char *) ZSTR_VAL(out);
+    const int16_t *src = (const int16_t *) ZSTR_VAL(input);
+
+    for (size_t i = 0; i < num_samples; i++) {
+        dst[i] = (unsigned char) linear2ulaw(src[i]);
+    }
+
+    dst[num_samples] = '\0';
+    RETURN_STR(out);
+}
+
+/* ------------------------------------------------------------------------- */
+/*    decodeL16ToPcm: L16 big-endian -> PCM little-endian                     */
+/* ------------------------------------------------------------------------- */
+
+ZEND_FUNCTION(decodeL16ToPcm) {
+    zend_string *input;
+
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
+
+    size_t len = ZSTR_LEN(input);
+    if (len < 2 || (len & 1) != 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    zend_string *out = zend_string_alloc(len, 0);
+    unsigned char *dst = (unsigned char *) ZSTR_VAL(out);
+    const unsigned char *src = (const unsigned char *) ZSTR_VAL(input);
+
+    for (size_t i = 0; i < len; i += 2) {
+        dst[i]     = src[i + 1];  /* low byte */
+        dst[i + 1] = src[i];      /* high byte */
+    }
+
+    dst[len] = '\0';
+    RETURN_STR(out);
+}
+
+/* ------------------------------------------------------------------------- */
+/*    encodePcmToL16: PCM little-endian -> L16 big-endian                     */
+/* ------------------------------------------------------------------------- */
+
+ZEND_FUNCTION(encodePcmToL16) {
+    zend_string *input;
+
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
+
+    size_t len = ZSTR_LEN(input);
+    if (len < 2 || (len & 1) != 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    zend_string *out = zend_string_alloc(len, 0);
+    unsigned char *dst = (unsigned char *) ZSTR_VAL(out);
+    const unsigned char *src = (const unsigned char *) ZSTR_VAL(input);
+
+    for (size_t i = 0; i < len; i += 2) {
+        dst[i]     = src[i + 1];  /* high byte */
+        dst[i + 1] = src[i];      /* low byte */
+    }
+
+    dst[len] = '\0';
+    RETURN_STR(out);
+}
+
+/* ------------------------------------------------------------------------- */
+/*    mixAudioChannels: mix de vários canais PCM 16-bit                       */
+/* ------------------------------------------------------------------------- */
+
+ZEND_FUNCTION(mixAudioChannels) {
+    zval *channels_array;
+    zend_long sample_rate = 8000;
+
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_ARRAY(channels_array)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(sample_rate)
+    ZEND_PARSE_PARAMETERS_END();
+
+    HashTable *channels = Z_ARRVAL_P(channels_array);
+    uint32_t num_channels = zend_hash_num_elements(channels);
+
+    if (num_channels == 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    if (num_channels == 1) {
+        zval *first = zend_hash_index_find(channels, 0);
+        if (!first) {
+            first = zend_hash_get_current_data(channels);
+        }
+        if (first && Z_TYPE_P(first) == IS_STRING) {
+            RETURN_STR_COPY(Z_STR_P(first));
+        }
+        RETURN_EMPTY_STRING();
+    }
+
+    /* Descobre o número máximo de samples entre todos os canais */
+    size_t max_samples = 0;
+    zval *channel_data;
+
+    ZEND_HASH_FOREACH_VAL(channels, channel_data) {
+        if (Z_TYPE_P(channel_data) != IS_STRING) {
+            continue;
+        }
+        size_t len = Z_STRLEN_P(channel_data);
+        if ((len & 1) != 0) {
+            php_error_docref(NULL, E_WARNING, "Canal de áudio com tamanho inválido (deve ser múltiplo de 2)");
+            RETURN_FALSE;
+        }
+        size_t samples = len / 2;
+        if (samples > max_samples) {
+            max_samples = samples;
+        }
+    } ZEND_HASH_FOREACH_END();
+
+    if (max_samples == 0) {
+        RETURN_EMPTY_STRING();
+    }
+
+    int32_t *mix_buffer = (int32_t *) ecalloc(max_samples, sizeof(int32_t));
+    if (!mix_buffer) {
+        php_error_docref(NULL, E_ERROR, "Falha ao alocar memória para mixagem");
+        RETURN_FALSE; /* ecalloc falhando já é fim de mundo de qualquer jeito */
+    }
+
+    uint32_t active_channels = 0;
+
+    ZEND_HASH_FOREACH_VAL(channels, channel_data) {
+        if (Z_TYPE_P(channel_data) != IS_STRING) {
+            continue;
+        }
+
+        const int16_t *samples = (const int16_t *) Z_STRVAL_P(channel_data);
+        size_t num_samples = Z_STRLEN_P(channel_data) / 2;
+
+        for (size_t i = 0; i < num_samples; i++) {
+            mix_buffer[i] += samples[i];
+        }
+        active_channels++;
+    } ZEND_HASH_FOREACH_END();
+
+    if (active_channels == 0) {
+        efree(mix_buffer);
+        RETURN_EMPTY_STRING();
+    }
+
+    size_t out_bytes = max_samples * 2;
+    zend_string *out = zend_string_alloc(out_bytes, 0);
+    int16_t *dst = (int16_t *) ZSTR_VAL(out);
+
+    double mix_factor = 1.0 / sqrt((double) active_channels);
+
+    for (size_t i = 0; i < max_samples; i++) {
+        int32_t mixed = (int32_t) (mix_buffer[i] * mix_factor);
+        int16_t output;
+        if (mixed > 32767) {
+            output = 32767;
+        } else if (mixed < -32768) {
+            output = -32768;
+        } else {
+            output = (int16_t) mixed;
+        }
+        dst[i] = output;
+    }
+
+    efree(mix_buffer);
+
+    ZSTR_VAL(out)[out_bytes] = '\0';
+    RETURN_STR(out);
+}
+
+/* ------------------------------------------------------------------------- */
+/*    Classe bcg729Channel                                                    */
+/* ------------------------------------------------------------------------- */
+
+ZEND_METHOD(bcg729Channel, __construct) {}
+
+ZEND_METHOD(bcg729Channel, decode) {
+    zend_string *input;
+
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(input)
+    ZEND_PARSE_PARAMETERS_END();
+
+    size_t len = ZSTR_LEN(input);
+    if (len == 0 || (len % 10) != 0) {
         RETURN_FALSE;
     }
 
     bcg729Channel *self = Z_BCG729_CHANNEL_P(getThis());
-    size_t frames = ZSTR_LEN(input) / 10;
-    smart_string result = {0};
+    if (!self->decoder) {
+        php_error_docref(NULL, E_WARNING, "Decoder channel is closed or not initialized");
+        RETURN_FALSE;
+    }
+
+    size_t frames = len / 10;
+    size_t out_samples = frames * 80; /* 80 amostras por frame */
+    size_t out_bytes = out_samples * 2;
+
+    zend_string *out = zend_string_alloc(out_bytes, 0);
+    int16_t *dst = (int16_t *) ZSTR_VAL(out);
+    const uint8_t *src = (const uint8_t *) ZSTR_VAL(input);
 
     for (size_t i = 0; i < frames; i++) {
         int16_t pcmOut[80] = {0};
-        const uint8_t *frame = (const uint8_t *) ZSTR_VAL(input) + (i * 10);
+        const uint8_t *frame = src + (i * 10);
         bcg729Decoder(self->decoder, frame, 10, 0, 0, 0, pcmOut);
-        smart_string_appendl(&result, (char *)pcmOut, sizeof(pcmOut));
+        memcpy(dst + (i * 80), pcmOut, sizeof(pcmOut));
     }
 
-    smart_string_0(&result);
-    RETVAL_STRINGL(result.c, result.len);
-    smart_string_free(&result);
+    ZSTR_VAL(out)[out_bytes] = '\0';
+    RETURN_STR(out);
 }
 
 ZEND_METHOD(bcg729Channel, encode) {
     zend_string *input;
+
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_STR(input)
     ZEND_PARSE_PARAMETERS_END();
 
-    if (ZSTR_LEN(input) % 160 != 0) {
+    size_t len = ZSTR_LEN(input);
+    if (len == 0 || (len % 160) != 0) {
         RETURN_FALSE;
     }
 
     bcg729Channel *self = Z_BCG729_CHANNEL_P(getThis());
-    size_t frames = ZSTR_LEN(input) / 160;
-    smart_string result = {0};
-
-    for (size_t i = 0; i < frames; i++) {
-        const int16_t *pcmIn = (const int16_t *) (ZSTR_VAL(input) + i * 160);
-        uint8_t g729[10];
-        uint8_t len = 0;
-        bcg729Encoder(self->encoder, pcmIn, g729, &len);
-        smart_string_appendl(&result, (char *)g729, len);
+    if (!self->encoder) {
+        php_error_docref(NULL, E_WARNING, "Encoder channel is closed or not initialized");
+        RETURN_FALSE;
     }
 
-    smart_string_0(&result);
-    RETVAL_STRINGL(result.c, result.len);
-    smart_string_free(&result);
+    size_t frames = len / 160;
+
+    /* Tamanho máximo: 10 bytes por frame */
+    size_t max_out = frames * 10;
+    zend_string *out = zend_string_alloc(max_out, 0);
+    uint8_t *dst = (uint8_t *) ZSTR_VAL(out);
+    size_t offset = 0;
+
+    const char *raw = ZSTR_VAL(input);
+
+    for (size_t i = 0; i < frames; i++) {
+        const int16_t *pcmIn = (const int16_t *) (raw + (i * 160));
+        uint8_t g729[10];
+        uint8_t frame_len = 0;
+
+        bcg729Encoder(self->encoder, pcmIn, g729, &frame_len);
+
+        if (frame_len > 0) {
+            if (offset + frame_len > max_out) {
+                /* segurança extra, mas em teoria não deveria acontecer */
+                frame_len = (uint8_t) (max_out - offset);
+            }
+            memcpy(dst + offset, g729, frame_len);
+            offset += frame_len;
+        }
+    }
+
+    dst[offset] = '\0';
+    ZSTR_LEN(out) = offset;
+    RETURN_STR(out);
 }
 
 ZEND_METHOD(bcg729Channel, info) {
     array_init(return_value);
-    add_assoc_bool(return_value, "decoder_initialized", Z_BCG729_CHANNEL_P(getThis())->decoder != NULL);
-    add_assoc_bool(return_value, "encoder_initialized", Z_BCG729_CHANNEL_P(getThis())->encoder != NULL);
+    bcg729Channel *self = Z_BCG729_CHANNEL_P(getThis());
+    add_assoc_bool(return_value, "decoder_initialized", self->decoder != NULL);
+    add_assoc_bool(return_value, "encoder_initialized", self->encoder != NULL);
 }
 
 ZEND_METHOD(bcg729Channel, close) {
@@ -459,6 +701,9 @@ ZEND_METHOD(bcg729Channel, close) {
     RETURN_TRUE;
 }
 
+/* ------------------------------------------------------------------------- */
+/*    Arginfo / function tables                                               */
+/* ------------------------------------------------------------------------- */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_void, 0, 0, 0)
 ZEND_END_ARG_INFO()
@@ -468,11 +713,11 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_codec_io, 0, 1, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
 static const zend_function_entry bcg729_methods[] = {
-    ZEND_ME(bcg729Channel, __construct, arginfo_void, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+    ZEND_ME(bcg729Channel, __construct, arginfo_void,    ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
     ZEND_ME(bcg729Channel, decode,      arginfo_codec_io, ZEND_ACC_PUBLIC)
     ZEND_ME(bcg729Channel, encode,      arginfo_codec_io, ZEND_ACC_PUBLIC)
-    ZEND_ME(bcg729Channel, info,        arginfo_void,     ZEND_ACC_PUBLIC)
-    ZEND_ME(bcg729Channel, close,       arginfo_void,     ZEND_ACC_PUBLIC)
+    ZEND_ME(bcg729Channel, info,        arginfo_void,    ZEND_ACC_PUBLIC)
+    ZEND_ME(bcg729Channel, close,       arginfo_void,    ZEND_ACC_PUBLIC)
     ZEND_FE_END
 };
 
@@ -497,13 +742,21 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_encode_law, 0, 1, IS_STRING, 0)
     ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
-
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_mix_channels, 0, 1, IS_STRING, 0)
+    ZEND_ARG_TYPE_INFO(0, channels, IS_ARRAY, 0)
+    ZEND_ARG_TYPE_INFO(0, sample_rate, IS_LONG, 0)
+ZEND_END_ARG_INFO()
 
 static const zend_function_entry bcg729_functions[] = {
-    ZEND_FE(decodePcmaToPcm, arginfo_decode_law)
-    ZEND_FE(decodePcmuToPcm, arginfo_decode_law)
-    ZEND_FE(pcmLeToBe, arginfo_decode_law)
-    ZEND_FE(resampler,       arginfo_resampler)
+    ZEND_FE(decodePcmaToPcm,  arginfo_decode_law)
+    ZEND_FE(decodePcmuToPcm,  arginfo_decode_law)
+    ZEND_FE(encodePcmToPcma,  arginfo_encode_law)
+    ZEND_FE(encodePcmToPcmu,  arginfo_encode_law)
+    ZEND_FE(decodeL16ToPcm,   arginfo_decode_law)
+    ZEND_FE(encodePcmToL16,   arginfo_encode_law)
+    ZEND_FE(mixAudioChannels, arginfo_mix_channels)
+    ZEND_FE(pcmLeToBe,        arginfo_decode_law)
+    ZEND_FE(resampler,        arginfo_resampler)
     ZEND_FE_END
 };
 
@@ -512,7 +765,10 @@ zend_module_entry bcg729_module_entry = {
     PHP_BCG729_EXTNAME,
     bcg729_functions,
     PHP_MINIT(bcg729),
-    NULL, NULL, NULL, NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     PHP_BCG729_VERSION,
     STANDARD_MODULE_PROPERTIES
 };

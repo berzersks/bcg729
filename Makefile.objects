@@ -1,9 +1,0 @@
--include bcg729.dep
-bcg729.lo: /home/lotus/PROJETOS/pcg729/downloads/bcg729/bcg729.c
-	$(LIBTOOL) --tag=CC --mode=compile $(CC) -I. -I/home/lotus/PROJETOS/pcg729/downloads/bcg729 $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)   -DZEND_COMPILE_DL_EXT=1 -c /home/lotus/PROJETOS/pcg729/downloads/bcg729/bcg729.c -o bcg729.lo  -MMD -MF bcg729.dep -MT bcg729.lo
-$(phplibdir)/bcg729.la: ./bcg729.la
-	$(LIBTOOL) --tag=CC --mode=install cp ./bcg729.la $(phplibdir)
-
-./bcg729.la: $(shared_objects_bcg729) $(BCG729_SHARED_DEPENDENCIES)
-	$(LIBTOOL) --tag=CC --mode=link $(CC) -shared $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS) $(LDFLAGS)  -o $@ -export-dynamic -avoid-version -prefer-pic -module -rpath $(phplibdir) $(EXTRA_LDFLAGS) $(shared_objects_bcg729) $(BCG729_SHARED_LIBADD)
-

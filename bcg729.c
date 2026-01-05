@@ -205,7 +205,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_resampler, 0, 3, IS_STRING, 0)
     ZEND_ARG_TYPE_INFO(0, input, IS_STRING, 0)
     ZEND_ARG_TYPE_INFO(0, src_rate, IS_LONG, 0)
     ZEND_ARG_TYPE_INFO(0, dst_rate, IS_LONG, 0)
-    ZEND_ARG_TYPE_INFO(0, to_be, IS_BOOL, 0)
+    ZEND_ARG_TYPE_INFO(0, to_be, _IS_BOOL, 0)
 ZEND_END_ARG_INFO()
 
 
@@ -748,7 +748,6 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_mix_channels, 0, 1, IS_STRING, 0
 ZEND_END_ARG_INFO()
 
 static const zend_function_entry bcg729_functions[] = {
-    ZEND_FE(resampler,        arginfo_resampler)
     ZEND_FE(decodePcmaToPcm,  arginfo_decode_law)
     ZEND_FE(decodePcmuToPcm,  arginfo_decode_law)
     ZEND_FE(encodePcmToPcma,  arginfo_encode_law)
@@ -757,6 +756,7 @@ static const zend_function_entry bcg729_functions[] = {
     ZEND_FE(encodePcmToL16,   arginfo_encode_law)
     ZEND_FE(mixAudioChannels, arginfo_mix_channels)
     ZEND_FE(pcmLeToBe,        arginfo_decode_law)
+    ZEND_FE(resampler,        arginfo_resampler)
     ZEND_FE_END
 };
 

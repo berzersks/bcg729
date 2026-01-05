@@ -1,0 +1,58 @@
+Index: config.m4
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>#ifndef PHP_BCG729_H\n#define PHP_BCG729_H\n\n#define PHP_BCG729_EXTNAME \"bcg729\"\n#define PHP_BCG729_VERSION \"1.0.5\"\n\nextern zend_module_entry bcg729_module_entry;\n#define phpext_bcg729_ptr &bcg729_module_entry\n\n#endif /* PHP_BCG729_H */
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/config.m4 b/config.m4
+--- a/config.m4	(revision 6e8cc08dc149f8b475baf4e1eb5b16ab1e6e21e2)
++++ b/config.m4	(date 1767585816919)
+@@ -1,10 +1,39 @@
+-#ifndef PHP_BCG729_H
+-#define PHP_BCG729_H
++PHP_ARG_WITH(bcg729, for bcg729 support,
++[  --with-bcg729             Include bcg729 support])
++
++if test "$PHP_BCG729" != "no"; then
++  SEARCH_PATH="/usr/local /usr"
++  SEARCH_FOR="/include/bcg729/decoder.h"
+ 
+-#define PHP_BCG729_EXTNAME "bcg729"
+-#define PHP_BCG729_VERSION "1.0.5"
++  AC_MSG_CHECKING([for bcg729 files in default path])
++  for i in $SEARCH_PATH ; do
++    if test -r $i/$SEARCH_FOR; then
++      BCG729_DIR=$i
++      AC_MSG_RESULT(found in $i)
++    fi
++  done
+ 
+-extern zend_module_entry bcg729_module_entry;
+-#define phpext_bcg729_ptr &bcg729_module_entry
++  if test -z "$BCG729_DIR"; then
++    AC_MSG_RESULT([not found])
++    AC_MSG_ERROR([Please reinstall the bcg729 distribution])
++  fi
+ 
+-#endif /* PHP_BCG729_H */
+\ No newline at end of file
++  PHP_ADD_INCLUDE($BCG729_DIR/include)
++
++  LIBNAME=bcg729
++  LIBSYMBOL=initBcg729DecoderChannel
++
++  PHP_CHECK_LIBRARY($LIBNAME,$LIBSYMBOL,
++  [
++    PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $BCG729_DIR/$PHP_LIBDIR, BCG729_SHARED_LIBADD)
++    AC_DEFINE(HAVE_BCG729,1,[ ])
++  ],[
++    AC_MSG_ERROR([wrong bcg729 lib version or lib not found])
++  ],[
++    -L$BCG729_DIR/$PHP_LIBDIR -lm
++  ])
++
++  PHP_SUBST(BCG729_SHARED_LIBADD)
++
++  PHP_NEW_EXTENSION(bcg729, bcg729.c, $ext_shared)
++fi

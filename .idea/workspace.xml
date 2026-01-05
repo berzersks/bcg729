@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AIAssistantCustomInstructionsStorage">
+    <option name="instructions">
+      <map>
+        <entry key="AIAssistant.VCS.GenerateCommitMessage">
+          <value>
+            <AIAssistantStoredInstruction>
+              <option name="actionId" value="AIAssistant.VCS.GenerateCommitMessage" />
+              <option name="content" value="Gere uma mensagem de commit em **português claro e técnico**, destacando **os pontos mais relevantes e perceptíveis para o cliente e para o time**.  &#10;A mensagem deve:&#10;&#10;1. Ter um **título curto e direto** (até ~72 caracteres) explicando o propósito geral da alteração.  &#10;2. Ser seguida por uma **descrição detalhada**, com foco no impacto prático (o que mudou, o que foi resolvido, e por que é importante).  &#10;3. Usar uma linguagem **natural e informativa**, sem termos genéricos como “ajustes” ou “melhorias gerais”.&#10;4. Sempre explicar **o efeito real no funcionamento do sistema** (ex: &quot;melhora a clareza do áudio&quot;, &quot;reduz o tempo de conexão&quot;, &quot;corrige falha no envio RTP&quot;, etc.).&#10;5. Quando houver mudanças técnicas específicas (como codecs, sockets, buffers, etc.), descreva de forma breve mas compreensível, sem jargões desnecessários.&#10;&#10;Exemplo de formato esperado:&#10;&#10;" />
+            </AIAssistantStoredInstruction>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/Environment/Hierarchy/GeneratedFilesCacheKey/Timestamp/@EntryValue" value="35" type="long" />
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
+  </component>
+  <component name="CMakePresetLoader">{
+  &quot;useNewFormat&quot;: true
+}</component>
+  <component name="CMakeProjectFlavorService">
+    <option name="flavorId" value="CMakePlainProjectFlavor" />
+  </component>
+  <component name="CMakeRunConfigurationManager">
+    <generated />
+  </component>
+  <component name="CMakeSettings" AUTO_RELOAD="true">
+    <configurations>
+      <configuration PROFILE_NAME="Default" ENABLED="true" TOOLCHAIN_NAME="Default" NO_GENERATOR="true" />
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="3f8a6c8b-6a1a-4a6c-8913-6e182f256f00" name="Changes" comment="### Atualiza versão do módulo bcg729 para 1.0.5&#10;&#10;#### Detalhes:&#10;- Alterada definição da versão em `config.m4` de `1.0` para `1.0.5`, refletindo melhorias ou ajustes desde o lançamento anterior.&#10;&#10;#### Impacto:&#10;- Garante que o módulo utilize a versão correta durante os builds, evitando confusões relacionadas a incompatibilidades de versão ou referências desatualizadas." />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="39" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Default" />
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/berzersks/bcg729.git&quot;,
+    &quot;accountId&quot;: &quot;32d801da-7ef3-4809-ab04-361105e2ae27&quot;
+  }
+}</component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="MqE5466B" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
+  <component name="ProjectId" id="37p1xrO02hwLMSutEYAmZm6Q3ub" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;CMake Application.bcg729.executor&quot;: &quot;Run&quot;,
+    &quot;CMake Debug.bcg729.executor&quot;: &quot;Debug&quot;,
+    &quot;Makefile Target.clean.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.RadMigrateCodeStyle&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.west.config.association.type.startup.service&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;pattern&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/lotus/PROJETOS/psampler&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;CMakeSettings&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="Push.Settings">
+    <force-push-targets>
+      <force-push-target remote-path="origin" branch="pattern" />
+    </force-push-targets>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3f8a6c8b-6a1a-4a6c-8913-6e182f256f00" name="Changes" comment="" />
+      <created>1760742274019</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1760742274019</updated>
+      <workItem from="1760742275127" duration="483000" />
+      <workItem from="1760743256321" duration="5000" />
+      <workItem from="1761031943406" duration="2000" />
+      <workItem from="1761395086803" duration="559000" />
+      <workItem from="1764364201615" duration="822000" />
+      <workItem from="1764439707741" duration="145000" />
+      <workItem from="1764439864423" duration="2665000" />
+      <workItem from="1764774235456" duration="14000" />
+      <workItem from="1767552895697" duration="70000" />
+      <workItem from="1767553505419" duration="583000" />
+      <workItem from="1767564284336" duration="452000" />
+      <workItem from="1767565594767" duration="280000" />
+      <workItem from="1767566409328" duration="51000" />
+      <workItem from="1767566482072" duration="63000" />
+      <workItem from="1767567878300" duration="4102000" />
+      <workItem from="1767575612189" duration="1302000" />
+    </task>
+    <task id="LOCAL-00001" summary="### Add função `resampler` para reamostragem de áudio PCM&#10;&#10;A função `resampler` foi adicionada ao módulo para permitir a reamostragem de áudio PCM entre frequências de amostragem diferentes usando interpolação cúbica com antialiasing. &#10;&#10;#### Principais mudanças:&#10;- Implementada lógica de interpolação cúbica (Catmull-Rom) para suavizar transições entre amostras.&#10;- Aplicado filtro para remoção de componentes DC (&quot;metal raspando&quot;) durante o processamento.&#10;- Compatibilidade com formatos big-endian (`to_be`) e little-endian.&#10;- Retorno otimizado diretamente como string, pronto para uso posterior no fluxo de processamento.&#10;&#10;Essa atualização amplia as funcionalidades do módulo, permitindo maior flexibilidade no tratamento de áudio e melhorando significativamente o suporte à manipulação de taxas de amostragem distintas.">
+      <option name="closed" value="true" />
+      <created>1760742732593</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1760742732593</updated>
+    </task>
+    <task id="LOCAL-00002" summary="### Adiciona novas funções para codificação, decodificação e mixagem de áudio&#10;&#10;#### Principais alterações:&#10;- **Codificação e decodificação entre formatos:**  &#10;  - Adicionadas funções `encodePcmToPcma`, `encodePcmToPcmu`, `decodeL16ToPcm` e `encodePcmToL16` para conversão entre formatos de áudio PCM, A-law, µ-law e big-endian/little-endian.&#10;- **Mixagem de canais de áudio:**  &#10;  - Implementada a função `mixAudioChannels` que permite mixar múltiplos canais PCM com normalização automática e soft limiting para evitar clipping.&#10;- Validações robustas foram incluídas para checar alinhamento de bytes e tamanho das entradas.&#10;&#10;Essas adições aumentam a capacidade do módulo, oferecendo suporte mais amplo para manipulação e processamento de áudio em diferentes cenários, como transcodificação e mixagem para aplicações VoIP.">
+      <option name="closed" value="true" />
+      <created>1764364520526</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1764364520527</updated>
+    </task>
+    <task id="LOCAL-00003" summary="### Remove arquivos e macros obsoletos do build e do sistema de configuração&#10;&#10;#### Detalhes:&#10;- **Exclusão de arquivos e macros desnecessários:**&#10;  - Removidos `ax_check_compile_flag.m4` e `ax_gcc_func_attribute.m4`, não mais aplicáveis à configuração atual.&#10;  - Arquivo `config.guess` eliminado, cuja funcionalidade é obsoleta no sistema moderno usado.&#10;- **Limpeza de arquivos gerados pela libtool:**  &#10;  - Exclusão de `bcg729.la`, `bcg729.lo` e `modules/bcg729.la`, que eram redundantes e gerados automaticamente.&#10;- **Remoção de dependências desatualizadas:**  &#10;  - Eliminado `bcg729.dep`, liberando referências a caminhos de includes que não são mais utilizados.&#10;&#10;Essas mudanças reduzem a complexidade, removem redundâncias e ajudam a manter o sistema de build enxuto, refletindo apenas os componentes realmente necessários.">
+      <option name="closed" value="true" />
+      <created>1767553625383</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1767553625383</updated>
+    </task>
+    <task id="LOCAL-00004" summary="### Adiciona templates para issues, pull requests e documentação do projeto&#10;&#10;#### Descrição:&#10;- **Templates de Issues:**&#10;  - Adicionados `bug_report.md` e `feature_request.md` em `.github/ISSUE_TEMPLATE` para padronizar os relatos de bugs e sugestões de melhorias, facilitando a comunicação do time.&#10;- **Template de Pull Request:**&#10;  - Criado `pull_request_template.md` para garantir que as contribuições sigam um fluxo claro e validado, incluindo checklists para build e testes.&#10;- **Novos Documentos de Contribuição e Changelog:**&#10;  - Adição de `CONTRIBUTING.md` explicando o fluxo de contribuição, padrão de commits, requisitos de build (phpize) e execução de testes.&#10;  - Criado `CHANGELOG.md`, seguindo o padrão &quot;Keep a Changelog&quot;, para documentar mudanças de maneira estruturada e rastreável.&#10;&#10;Essas adições melhoram a transparência, organização e eficiência na gestão de contribuições, acelerando o ciclo de desenvolvimento e reduzindo ambiguidades no suporte ao projeto.">
+      <option name="closed" value="true" />
+      <created>1767553831330</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1767553831330</updated>
+    </task>
+    <task id="LOCAL-00005" summary="### Adiciona templates para issues, pull requests e documentação do projeto&#10;&#10;#### Descrição:&#10;- **Templates de Issues:**&#10;  - Adicionados `bug_report.md` e `feature_request.md` em `.github/ISSUE_TEMPLATE` para padronizar os relatos de bugs e sugestões de melhorias, facilitando a comunicação do time.&#10;- **Template de Pull Request:**&#10;  - Criado `pull_request_template.md` para garantir que as contribuições sigam um fluxo claro e validado, incluindo checklists para build e testes.&#10;- **Novos Documentos de Contribuição e Changelog:**&#10;  - Adição de `CONTRIBUTING.md` explicando o fluxo de contribuição, padrão de commits, requisitos de build (phpize) e execução de testes.&#10;  - Criado `CHANGELOG.md`, seguindo o padrão &quot;Keep a Changelog&quot;, para documentar mudanças de maneira estruturada e rastreável.&#10;&#10;Essas adições melhoram a transparência, organização e eficiência na gestão de contribuições, acelerando o ciclo de desenvolvimento e reduzindo ambiguidades no suporte ao projeto.">
+      <option name="closed" value="true" />
+      <created>1767564704879</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1767564704879</updated>
+    </task>
+    <task id="LOCAL-00006" summary="### Adiciona função `resampler` para reamostragem de áudio PCM no módulo&#10;&#10;#### Descrição:&#10;- **Reamostragem entre diferentes taxas**:&#10;  - Implementada a função `resampler`, permitindo conversão entre frequências de amostragem de áudio PCM.&#10;  - Utiliza interpolação cúbica (Catmull-Rom) para aumentar a precisão e suavidade na transição entre amostras.&#10;- **Filtro de antialiasing**:&#10;  - Inclusão de remoção de componentes DC (ruídos metálicos), aprimorando a qualidade do áudio processado.&#10;- **Compatibilidade ampliada**:&#10;  - Suporte para formatos big-endian e little-endian por meio do parâmetro opcional `to_be`.&#10;- **Eficiência no retorno**:&#10;  - Resultado retornado como string diretamente utilizável no pipeline de processamento.&#10;&#10;Essa funcionalidade suporta manipulação aprimorada de taxas de amostragem, beneficiando aplicações que exigem alta precisão no processamento de áudio.">
+      <option name="closed" value="true" />
+      <created>1767565855447</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1767565855447</updated>
+    </task>
+    <task id="LOCAL-00007" summary="### Remove fluxo de build experimental via CMake e limpa arquivos obsoletos&#10;&#10;#### Detalhes da mudança:&#10;- **Remoção do suporte experimental ao CMake**:&#10;  - Arquivos relacionados ao build via CMake foram deletados (`CMakeLists.txt`), uma vez que não eram oficialmente suportados e estavam marcados como experimentais.&#10;  - Esta decisão reforça o fluxo de build oficial utilizando `phpize/autoconf`, evitando confusões e erros.&#10;&#10;- **Exclusão de arquivos de configuração e build desnecessários**:&#10;  - Removidos arquivos como `config.m4`, `configure.ac`, `config.h.in`, `config.log`, `config.nice` e o `Makefile`, que estavam relacionados ao suporte removido.&#10;  - Esses arquivos estavam causando redundâncias e adicionavam complexidade desnecessária ao processo de desenvolvimento.&#10;&#10;Essas alterações simplificam o sistema de build do módulo, focando exclusivamente no fluxo oficial e garantindo manutenção mais eficiente.">
+      <option name="closed" value="true" />
+      <created>1767571881206</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1767571881206</updated>
+    </task>
+    <task id="LOCAL-00008" summary="### Remove arquivos gerados automaticamente e configurações obsoletas&#10;&#10;#### Detalhes da mudança:&#10;- **Exclusão de arquivos de configuração e build não utilizados:**&#10;  - Arquivos `.editorconfig`, `config.h` e `libtool` foram removidos, pois não são mais necessários ou estavam desatualizados.&#10;  - A remoção cobre ferramentas geradas automaticamente (como pelo autotools/libtool), reduzindo redundâncias e ruídos no repositório.&#10;&#10;#### Impacto:&#10;- Simplificação do repositório, refletindo apenas arquivos necessários ao fluxo atual de desenvolvimento.&#10;- Facilita a manutenção do projeto e evita inconsistências de configuração.">
+      <option name="closed" value="true" />
+      <created>1767576496093</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1767576496093</updated>
+    </task>
+    <task id="LOCAL-00009" summary="### Atualiza versão do módulo bcg729 para 1.0.5&#10;&#10;#### Detalhes:&#10;- Alterada definição da versão em `config.m4` de `1.0` para `1.0.5`, refletindo melhorias ou ajustes desde o lançamento anterior.&#10;&#10;#### Impacto:&#10;- Garante que o módulo utilize a versão correta durante os builds, evitando confusões relacionadas a incompatibilidades de versão ou referências desatualizadas.">
+      <option name="closed" value="true" />
+      <created>1767576899073</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1767576899073</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UpdateCopyrightCheckinHandler">
+    <option name="UPDATE_COPYRIGHT" value="true" />
+  </component>
+  <component name="VCPKGProject">
+    <isAutomaticCheckingOnLaunch value="false" />
+    <isAutomaticFoundErrors value="true" />
+    <isAutomaticReloadCMake value="true" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="User">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="*" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="mix" />
+                      </list>
+                    </value>
+                  </entry>
+                  <entry key="user">
+                    <value>
+                      <list>
+                        <option value="*" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Add `resampler` function for audio sample rate conversion" />
+    <MESSAGE value="### Add função `resampler` para reamostragem de áudio PCM&#10;&#10;A função `resampler` foi adicionada ao módulo para permitir a reamostragem de áudio PCM entre frequências de amostragem diferentes usando interpolação cúbica com antialiasing. &#10;&#10;#### Principais mudanças:&#10;- Implementada lógica de interpolação cúbica (Catmull-Rom) para suavizar transições entre amostras.&#10;- Aplicado filtro para remoção de componentes DC (&quot;metal raspando&quot;) durante o processamento.&#10;- Compatibilidade com formatos big-endian (`to_be`) e little-endian.&#10;- Retorno otimizado diretamente como string, pronto para uso posterior no fluxo de processamento.&#10;&#10;Essa atualização amplia as funcionalidades do módulo, permitindo maior flexibilidade no tratamento de áudio e melhorando significativamente o suporte à manipulação de taxas de amostragem distintas." />
+    <MESSAGE value="### Adiciona novas funções para codificação, decodificação e mixagem de áudio&#10;&#10;#### Principais alterações:&#10;- **Codificação e decodificação entre formatos:**  &#10;  - Adicionadas funções `encodePcmToPcma`, `encodePcmToPcmu`, `decodeL16ToPcm` e `encodePcmToL16` para conversão entre formatos de áudio PCM, A-law, µ-law e big-endian/little-endian.&#10;- **Mixagem de canais de áudio:**  &#10;  - Implementada a função `mixAudioChannels` que permite mixar múltiplos canais PCM com normalização automática e soft limiting para evitar clipping.&#10;- Validações robustas foram incluídas para checar alinhamento de bytes e tamanho das entradas.&#10;&#10;Essas adições aumentam a capacidade do módulo, oferecendo suporte mais amplo para manipulação e processamento de áudio em diferentes cenários, como transcodificação e mixagem para aplicações VoIP." />
+    <MESSAGE value="### Remove arquivos e macros obsoletos do build e do sistema de configuração&#10;&#10;#### Detalhes:&#10;- **Exclusão de arquivos e macros desnecessários:**&#10;  - Removidos `ax_check_compile_flag.m4` e `ax_gcc_func_attribute.m4`, não mais aplicáveis à configuração atual.&#10;  - Arquivo `config.guess` eliminado, cuja funcionalidade é obsoleta no sistema moderno usado.&#10;- **Limpeza de arquivos gerados pela libtool:**  &#10;  - Exclusão de `bcg729.la`, `bcg729.lo` e `modules/bcg729.la`, que eram redundantes e gerados automaticamente.&#10;- **Remoção de dependências desatualizadas:**  &#10;  - Eliminado `bcg729.dep`, liberando referências a caminhos de includes que não são mais utilizados.&#10;&#10;Essas mudanças reduzem a complexidade, removem redundâncias e ajudam a manter o sistema de build enxuto, refletindo apenas os componentes realmente necessários." />
+    <MESSAGE value="### Adiciona templates para issues, pull requests e documentação do projeto&#10;&#10;#### Descrição:&#10;- **Templates de Issues:**&#10;  - Adicionados `bug_report.md` e `feature_request.md` em `.github/ISSUE_TEMPLATE` para padronizar os relatos de bugs e sugestões de melhorias, facilitando a comunicação do time.&#10;- **Template de Pull Request:**&#10;  - Criado `pull_request_template.md` para garantir que as contribuições sigam um fluxo claro e validado, incluindo checklists para build e testes.&#10;- **Novos Documentos de Contribuição e Changelog:**&#10;  - Adição de `CONTRIBUTING.md` explicando o fluxo de contribuição, padrão de commits, requisitos de build (phpize) e execução de testes.&#10;  - Criado `CHANGELOG.md`, seguindo o padrão &quot;Keep a Changelog&quot;, para documentar mudanças de maneira estruturada e rastreável.&#10;&#10;Essas adições melhoram a transparência, organização e eficiência na gestão de contribuições, acelerando o ciclo de desenvolvimento e reduzindo ambiguidades no suporte ao projeto." />
+    <MESSAGE value="### Adiciona função `resampler` para reamostragem de áudio PCM no módulo&#10;&#10;#### Descrição:&#10;- **Reamostragem entre diferentes taxas**:&#10;  - Implementada a função `resampler`, permitindo conversão entre frequências de amostragem de áudio PCM.&#10;  - Utiliza interpolação cúbica (Catmull-Rom) para aumentar a precisão e suavidade na transição entre amostras.&#10;- **Filtro de antialiasing**:&#10;  - Inclusão de remoção de componentes DC (ruídos metálicos), aprimorando a qualidade do áudio processado.&#10;- **Compatibilidade ampliada**:&#10;  - Suporte para formatos big-endian e little-endian por meio do parâmetro opcional `to_be`.&#10;- **Eficiência no retorno**:&#10;  - Resultado retornado como string diretamente utilizável no pipeline de processamento.&#10;&#10;Essa funcionalidade suporta manipulação aprimorada de taxas de amostragem, beneficiando aplicações que exigem alta precisão no processamento de áudio." />
+    <MESSAGE value="### Remove fluxo de build experimental via CMake e limpa arquivos obsoletos&#10;&#10;#### Detalhes da mudança:&#10;- **Remoção do suporte experimental ao CMake**:&#10;  - Arquivos relacionados ao build via CMake foram deletados (`CMakeLists.txt`), uma vez que não eram oficialmente suportados e estavam marcados como experimentais.&#10;  - Esta decisão reforça o fluxo de build oficial utilizando `phpize/autoconf`, evitando confusões e erros.&#10;&#10;- **Exclusão de arquivos de configuração e build desnecessários**:&#10;  - Removidos arquivos como `config.m4`, `configure.ac`, `config.h.in`, `config.log`, `config.nice` e o `Makefile`, que estavam relacionados ao suporte removido.&#10;  - Esses arquivos estavam causando redundâncias e adicionavam complexidade desnecessária ao processo de desenvolvimento.&#10;&#10;Essas alterações simplificam o sistema de build do módulo, focando exclusivamente no fluxo oficial e garantindo manutenção mais eficiente." />
+    <MESSAGE value="### Remove arquivos gerados automaticamente e configurações obsoletas&#10;&#10;#### Detalhes da mudança:&#10;- **Exclusão de arquivos de configuração e build não utilizados:**&#10;  - Arquivos `.editorconfig`, `config.h` e `libtool` foram removidos, pois não são mais necessários ou estavam desatualizados.&#10;  - A remoção cobre ferramentas geradas automaticamente (como pelo autotools/libtool), reduzindo redundâncias e ruídos no repositório.&#10;&#10;#### Impacto:&#10;- Simplificação do repositório, refletindo apenas arquivos necessários ao fluxo atual de desenvolvimento.&#10;- Facilita a manutenção do projeto e evita inconsistências de configuração." />
+    <MESSAGE value="### Atualiza versão do módulo bcg729 para 1.0.5&#10;&#10;#### Detalhes:&#10;- Alterada definição da versão em `config.m4` de `1.0` para `1.0.5`, refletindo melhorias ou ajustes desde o lançamento anterior.&#10;&#10;#### Impacto:&#10;- Garante que o módulo utilize a versão correta durante os builds, evitando confusões relacionadas a incompatibilidades de versão ou referências desatualizadas." />
+    <option name="LAST_COMMIT_MESSAGE" value="### Atualiza versão do módulo bcg729 para 1.0.5&#10;&#10;#### Detalhes:&#10;- Alterada definição da versão em `config.m4` de `1.0` para `1.0.5`, refletindo melhorias ou ajustes desde o lançamento anterior.&#10;&#10;#### Impacto:&#10;- Garante que o módulo utilize a versão correta durante os builds, evitando confusões relacionadas a incompatibilidades de versão ou referências desatualizadas." />
+    <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
+    <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
+  </component>
+</project>

@@ -1,5 +1,6 @@
 #include "php.h"
 #include "php_bcg729.h"
+#include "zend_smart_string.h"
 
 #include <stdint.h>
 #include <string.h>

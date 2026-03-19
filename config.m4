@@ -1,10 +1,7 @@
-#ifndef PHP_BCG729_H
-#define PHP_BCG729_H
+PHP_ARG_ENABLE(bcg729, whether to enable bcg729 support,
+[  --enable-bcg729           Enable bcg729 extension])
 
-#define PHP_BCG729_EXTNAME "bcg729"
-#define PHP_BCG729_VERSION "1.0.5"
-
-extern zend_module_entry bcg729_module_entry;
-#define phpext_bcg729_ptr &bcg729_module_entry
-
-#endif /* PHP_BCG729_H */
+if test "$PHP_BCG729" != "no"; then
+  PHP_NEW_EXTENSION(bcg729, bcg729.c, $ext_shared)
+  PHP_ADD_LIBRARY(bcg729, 1, bcg729)
+fi

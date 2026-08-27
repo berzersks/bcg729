@@ -1,10 +1,12 @@
 #include "php.h"
 #include "php_bcg729.h"
 #include "zend_smart_string.h"
+#include "ext/standard/info.h"
 
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
+#include <gsm.h>
 
 #include "bcg729/decoder.h"
 #include "bcg729/encoder.h"
@@ -723,7 +725,7 @@ static const zend_function_entry bcg729_methods[] = {
 };
 
 PHP_MINIT_FUNCTION(bcg729) {
-    zend_class_entry ce;
+    zend_class_entry ce, gsm_ce;
     INIT_CLASS_ENTRY(ce, "bcg729Channel", bcg729_methods);
     bcg729_ce = zend_register_internal_class(&ce);
     bcg729_ce->create_object = bcg729_create;
@@ -732,7 +734,18 @@ PHP_MINIT_FUNCTION(bcg729) {
     bcg729_handlers.offset = XtOffsetOf(bcg729Channel, std);
     bcg729_handlers.free_obj = bcg729_free;
 
+    INIT_CLASS_ENTRY(gsm_ce, "gsmChannel", NULL);
+    zend_register_internal_class(&gsm_ce);
+
     return SUCCESS;
+}
+
+PHP_MINFO_FUNCTION(bcg729) {
+    php_info_print_table_start();
+    php_info_print_table_header(2, "bcg729 support", "enabled");
+    php_info_print_table_row(2, "libgsm support", "enabled");
+    php_info_print_table_row(2, "gsmChannel class", "available");
+    php_info_print_table_end();
 }
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_decode_law, 0, 1, IS_STRING, 0)
@@ -769,7 +782,7 @@ zend_module_entry bcg729_module_entry = {
     NULL,
     NULL,
     NULL,
-    NULL,
+    PHP_MINFO(bcg729),
     PHP_BCG729_VERSION,
     STANDARD_MODULE_PROPERTIES
 };

@@ -878,7 +878,7 @@ static const zend_function_entry bcg729_methods[] = {
     ZEND_FE_END
 };
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_gsm_construct, 0, 0, IS_VOID, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_gsm_construct, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_gsm_codec_io, 0, 1, MAY_BE_STRING | MAY_BE_FALSE)
